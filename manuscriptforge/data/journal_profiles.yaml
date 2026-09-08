@@ -1,0 +1,151 @@
+generic_biomedical:
+  required_sections:
+    - Abstract
+    - Introduction
+    - Methods
+    - Results
+    - Discussion
+    - References
+  optional_sections:
+    - Limitations
+    - Conclusion
+  structured_abstract_headings:
+    - Background
+    - Methods
+    - Results
+    - Conclusions
+  abstract_word_limit: 300
+  manuscript_word_limit: 3500
+  citation_style: numeric
+  required_statements:
+    - data_availability
+    - ethics_statement
+    - funding
+    - conflicts_of_interest
+    - ai_disclosure
+  reporting_checklist:
+    - methods_reproducibility
+    - statistics
+    - software_versions
+    - sample_size
+    - limitations
+  reviewer_focus:
+    - rationale
+    - methods clarity
+    - statistical rigor
+    - reproducibility
+
+computational_biology:
+  required_sections:
+    - Abstract
+    - Introduction
+    - Methods
+    - Results
+    - Discussion
+    - References
+  optional_sections:
+    - Reproducibility
+    - Limitations
+    - Conclusion
+  structured_abstract_headings:
+    - Background
+    - Methods
+    - Results
+    - Conclusions
+  abstract_word_limit: 350
+  manuscript_word_limit: 4500
+  citation_style: author-year
+  required_statements:
+    - data_availability
+    - code_availability
+    - funding
+    - conflicts_of_interest
+    - ai_disclosure
+  reporting_checklist:
+    - methods_reproducibility
+    - statistics
+    - software_versions
+    - sample_size
+    - validation
+    - limitations
+    - data_code_availability
+  reviewer_focus:
+    - data provenance
+    - parameter settings
+    - code availability
+    - validation strategy
+
+bioinformatics_methods:
+  required_sections:
+    - Abstract
+    - Introduction
+    - Methods
+    - Results
+    - Discussion
+    - References
+  optional_sections:
+    - Availability
+    - Reproducibility
+    - Limitations
+  structured_abstract_headings:
+    - Motivation
+    - Results
+    - Availability
+    - Contact
+  abstract_word_limit: 250
+  manuscript_word_limit: 5000
+  citation_style: author-year
+  required_statements:
+    - data_availability
+    - code_availability
+    - funding
+    - conflicts_of_interest
+    - ai_disclosure
+  reporting_checklist:
+    - methods_reproducibility
+    - software_versions
+    - validation
+    - data_code_availability
+
+review_article:
+  required_sections:
+    - Abstract
+    - Introduction
+    - Search Strategy
+    - Thematic Synthesis
+    - Conclusion
+    - References
+  optional_sections:
+    - Gaps and Limitations
+  structured_abstract_headings: []
+  abstract_word_limit: 250
+  manuscript_word_limit: 6000
+  citation_style: author-year
+  required_statements:
+    - funding
+    - conflicts_of_interest
+    - ai_disclosure
+  reporting_checklist:
+    - limitations
+
+short_report:
+  required_sections:
+    - Abstract
+    - Introduction
+    - Methods
+    - Results
+    - Discussion
+    - References
+  optional_sections:
+    - Limitations
+  structured_abstract_headings: []
+  abstract_word_limit: 150
+  manuscript_word_limit: 1800
+  citation_style: numeric
+  required_statements:
+    - data_availability
+    - conflicts_of_interest
+    - ai_disclosure
+  reporting_checklist:
+    - statistics
+    - limitations

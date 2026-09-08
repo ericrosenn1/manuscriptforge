@@ -1,0 +1,20 @@
+{
+  "validation_status": "PASS",
+  "source_documents": 3,
+  "input_formats": [".docx", ".md", ".txt"],
+  "extracted_chunks": 7,
+  "approved_chunks": 6,
+  "excluded_duplicate_chunks": 1,
+  "profile_source_documents": 2,
+  "profile_word_count": 432,
+  "profile_sentence_count": 26,
+  "section_counts": {
+    "abstract": 1,
+    "discussion": 1,
+    "introduction": 1,
+    "limitations": 1,
+    "methods": 1,
+    "results": 1
+  },
+  "style_cards": 8
+}

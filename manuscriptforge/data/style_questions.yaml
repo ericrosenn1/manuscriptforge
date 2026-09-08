@@ -1,0 +1,11 @@
+pairwise_preferences:
+  - prompt: Which sentence is closer to your manuscript style?
+    options:
+      - The analysis demonstrates a robust association across all evaluated cohorts.
+      - The analysis was consistent with an association across the evaluated cohorts.
+sentence_rewrites:
+  - Rewrite this sentence as you would write it: "These findings prove that the marker is clinically useful."
+claim_strength:
+  - Choose the most appropriate hedge level for a weakly supported interpretation.
+journal_preferences:
+  - Do you prefer a compact Results section with interpretation deferred to Discussion?

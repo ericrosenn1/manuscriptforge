@@ -1,0 +1,22 @@
+project_name: Synthetic sensor workflow regression fixture
+article_type: computational_biology
+privacy:
+  local_only: true
+llm:
+  provider: mock
+sources:
+  allow_network_enrichment: false
+  enrich_doi: false
+tables:
+  schemas:
+    results_summary.csv:
+      thresholds:
+        adjusted_p_value: 0.05
+      column_roles:
+        feature: identifier
+        comparison: group
+        log2_fold_change: effect_size
+        adjusted_p_value: adjusted_p_value
+style:
+  active_mode: academic_manuscript
+  include_modes: [academic_manuscript]

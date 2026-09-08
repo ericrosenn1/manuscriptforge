@@ -1,0 +1,75 @@
+project_name: Example Manuscript
+article_type: biomedical_imrad
+target_journal: null
+target_audience: biomedical researchers
+field: bioinformatics
+corresponding_author_name: null
+citation_style: numeric
+privacy:
+  local_only: true
+llm:
+  provider: mock
+  model: null
+  temperature: 0.2
+manuscript:
+  include_sections:
+    - Abstract
+    - Introduction
+    - Methods
+    - Results
+    - Discussion
+    - Limitations
+    - Conclusion
+    - References
+  structured_abstract: true
+style:
+  use_style_corpus: true
+  max_style_examples_per_section: 5
+  active_mode: academic_manuscript
+  allowed_modes:
+    - academic_manuscript
+    - coursework_explanatory
+    - response_to_reviewers
+    - journal_cover_letter
+    - grant_or_proposal
+    - review_article
+    - journal_adapted_academic
+  include_modes:
+    - academic_manuscript
+  exclude_modes:
+    - coursework_explanatory
+  mode_fallback: unknown
+  warn_on_mixed_modes: true
+  extraction:
+    enabled: true
+    cache_extracted_text: true
+    exclude_references_section: true
+    max_chunk_words: 900
+    min_chunk_words: 40
+    include_pdf: true
+    include_docx: true
+    fail_on_extraction_error: false
+  curation:
+    use_chunk_registry: true
+    require_chunk_approval: false
+    include_needs_review_chunks: true
+    exclude_warning_chunks_by_default: false
+  section_controls: {}
+evidence:
+  require_claim_registry: true
+  flag_unsupported_claims: true
+sources:
+  allow_network_enrichment: false
+  metadata_cache_dir: ".manuscriptforge_cache/metadata"
+  enrich_doi: false
+  enrich_pmid: false
+  fail_on_metadata_error: false
+  require_pdf_text: false
+tables:
+  schemas: {}
+outputs:
+  formats:
+    - markdown
+    - docx
+    - latex
+    - xlsx

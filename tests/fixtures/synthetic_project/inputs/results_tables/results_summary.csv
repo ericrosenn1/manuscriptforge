@@ -1,0 +1,4 @@
+feature,comparison,log2_fold_change,adjusted_p_value,n,notes
+channel_A,near_vs_far,1.4,0.01,12,arbitrary parser test value
+channel_B,near_vs_far,-0.8,0.04,12,arbitrary parser test value
+channel_C,near_vs_far,0.1,0.7,12,arbitrary parser test value
