@@ -2,7 +2,7 @@
 
 <!--
 Use this folder for optional JSONL feedback files used by capture-feedback --from-file.
-For a first real pilot, keep SkipFeedback true until a draft and review plan exist.
+Capture feedback after a draft and review plan exist.
 -->
 
 ## JSONL Expectations

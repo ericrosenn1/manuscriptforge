@@ -184,7 +184,7 @@ def validate_project(project_dir: Path) -> ValidationResult:
         profiles = read_config_resource("journal_profiles.yaml")
         if config.target_journal and config.target_journal not in profiles:
             result.warnings.append(
-                f"target_journal/profile '{config.target_journal}' is not defined in configs/journal_profiles.yaml"
+                f"target_journal/profile '{config.target_journal}' is not defined in the bundled journal_profiles.yaml resource"
             )
         if config.article_type not in profiles and config.article_type not in {
             "biomedical_imrad",

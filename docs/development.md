@@ -1,6 +1,6 @@
 # Development and validation
 
-Create a virtual environment as shown in the README, then install the development tools:
+Create a virtual environment as shown in the [README](../README.md), then install the development tools:
 
 ```text
 python -m pip install -e ".[dev]"

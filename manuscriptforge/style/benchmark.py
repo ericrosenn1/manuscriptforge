@@ -1021,12 +1021,12 @@ def build_style_benchmark_report(
 
 def _score_interpretation(score: float) -> str:
     if score >= 85:
-        return "close to the measured style profile"
+        return "high heuristic similarity across the measured indicators"
     if score >= 70:
-        return "promising but still needs targeted style revision"
+        return "moderate heuristic similarity; review the reported gaps"
     if score >= 50:
-        return "mixed alignment with measurable style gaps"
-    return "weak alignment or insufficient style evidence"
+        return "mixed heuristic alignment across measured indicators"
+    return "low heuristic similarity or insufficient style evidence"
 
 
 def render_style_benchmark_markdown(report: StyleBenchmarkReport) -> str:
@@ -1037,7 +1037,8 @@ def render_style_benchmark_markdown(report: StyleBenchmarkReport) -> str:
         f"- Compared run: {report.compared_run_id or 'none'}",
         f"- Active style mode: {report.active_style_mode}",
         f"- Overall score: {report.overall_score}/100",
-        f"- Interpretation: {_score_interpretation(report.overall_score)}",
+        f"- Heuristic score band: {_score_interpretation(report.overall_score)}",
+        "- This score summarizes rule-based indicators; it does not validate writing quality, author preference, or scientific content.",
         "",
         "## Section Scores",
     ]

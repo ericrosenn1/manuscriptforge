@@ -30,7 +30,7 @@ def render_style_guide(profile: StyleProfile) -> str:
         "## Transitions",
         f"- Common transitions: {', '.join(profile.transition_profile.get('transition_counts', {}).keys()) or 'none detected'}",
         f"- Passive voice ratio: {features.get('passive_voice_ratio', 0)}",
-        f"- First-person pronouns: {features.get('first_person_count', 0)}",
+        f"- First-person pronouns: {features.get('first_person_usage', features.get('first_person_count', 0))}",
         "",
         "## Limitation Phrasing",
     ]
@@ -42,12 +42,22 @@ def render_style_guide(profile: StyleProfile) -> str:
     lines.extend(
         [
             "",
-            "## Preferred Phrases",
+            "## Common Three-Word Sequences",
+            "These are frequency counts from the selected corpus, not instructions to repeat them.",
         ]
     )
-    lines.extend(f"- {phrase}" for phrase in profile.preferred_phrases[:12])
+    if profile.preferred_phrases:
+        lines.extend(f"- {phrase}" for phrase in profile.preferred_phrases[:12])
+    else:
+        lines.append("- No recurring three-word sequences detected.")
     if profile.avoided_phrases:
-        lines.extend(["", "## Avoided Phrases"])
+        lines.extend(
+            [
+                "",
+                "## Default Phrases to Review",
+                "This project checklist is not inferred from the corpus.",
+            ]
+        )
         lines.extend(f"- {phrase}" for phrase in profile.avoided_phrases)
     lines.extend(
         [

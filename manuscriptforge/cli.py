@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 import traceback
@@ -223,8 +222,17 @@ def demo(output_dir: Annotated[Path, typer.Argument(help="Directory for the orig
 
     try:
         result = run_demo(output_dir)
-        console.print_json(json=json.dumps(result))
-        console.print(f"Demo validated. Outputs: {output_dir.resolve()}")
+        table = Table(title="demo validated")
+        table.add_column("Check")
+        table.add_column("Result")
+        table.add_row("source documents", str(result["source_documents"]))
+        table.add_row("extracted passages", str(result["extracted_chunks"]))
+        table.add_row("approved passages", str(result["approved_chunks"]))
+        table.add_row("excluded duplicate passages", str(result["excluded_duplicate_chunks"]))
+        table.add_row("style cards", str(result["style_cards"]))
+        console.print(table)
+        console.print(f"Report: {output_dir.resolve() / 'DEMO_REPORT.md'}")
+        console.print(f"Summary: {output_dir.resolve() / 'demo_summary.json'}")
     except Exception as exc:
         console.print(f"[red]demo failed[/red]: {exc}")
         raise typer.Exit(code=1) from exc
@@ -244,7 +252,7 @@ def prep_pilot(
     ] = False,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Create or update a real-pilot project scaffold."""
+    """Create or update a starter manuscript project."""
     try:
         result = run_prep_pilot(project_dir, template.value, overwrite=overwrite, with_examples=with_examples)
     except Exception as exc:
@@ -844,7 +852,7 @@ def extract_style_corpus_command(
     force: Annotated[bool, typer.Option("--force", help="Ignore cached extraction records.")] = False,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Extract approved style documents without drafting or profiling."""
+    """Extract eligible style documents without drafting or profiling."""
     try:
         result = run_extract_style_corpus(project_dir, mode=mode, force=force)
     except Exception as exc:
@@ -900,7 +908,7 @@ def build_style_chunk_registry_command(
     force: Annotated[bool, typer.Option("--force", help="Force style text re-extraction before chunking.")] = False,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Build the private chunk-level style curation registry."""
+    """Build the local chunk-level style curation registry."""
     try:
         result = run_build_style_chunk_registry(project_dir, mode=mode, force=force)
     except Exception as exc:
@@ -1028,7 +1036,7 @@ def build_style_cards_command(
     mode: Annotated[str | None, typer.Option("--mode", help="Style mode to summarize.")] = None,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Build private local style cards by mode and section."""
+    """Build local style cards by mode and section."""
     try:
         result = run_build_style_cards(project_dir, mode=mode)
     except Exception as exc:
@@ -1340,7 +1348,7 @@ def feedback_summary(
     run: Annotated[str | None, typer.Option("--run", help="Run ID or path.")] = None,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Summarize review feedback, accepted rewrites, and fine-tuning readiness."""
+    """Summarize review feedback, accepted rewrites, and collection counts."""
     _run_or_exit("feedback-summary", run_feedback_summary, project_dir, run_ref=run, debug=debug)
 
 

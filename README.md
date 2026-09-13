@@ -1,112 +1,134 @@
 # ManuscriptForge
 
-A Python research prototype for inspecting writing corpora, curating section-level examples, and producing traceable descriptive style profiles.
+ManuscriptForge organizes an author's writing samples into reviewed passages and section-specific style summaries. Its Python tools extract text from local documents, record which passages are included or excluded, and generate reports that link summaries back to their source material.
 
-**Experimental research prototype.** ManuscriptForge makes the decisions between a source document and a style summary inspectable: which passages were extracted, which were approved or excluded, and which contributed to each section profile. It also contains experimental manuscript, evidence-audit, and review workflows that require human assessment.
+The workflow helps researchers assemble an inspectable collection of examples for consistent manuscript preparation, rather than mixing whole documents and unreviewed passages. It can also provide a transparent starting point for future personalized writing workflows. It does not train a model or automatically reproduce an author's prose.
 
-The offline demo runs the actual extraction, curation, and profiling code on three original synthetic documents. It needs no API key, GPU, model download, or private files.
+**Experimental research software.** The implemented core workflow is local extraction, passage curation, descriptive profiling, and traceable reporting. Optional manuscript, evidence, and review commands need human assessment.
 
-## Quickstart
+## Quick start
 
-Use Python 3.11, 3.12, or 3.13 and Git. Installation downloads the declared Python dependencies; the demo itself runs offline.
+Use Python 3.11, 3.12, or 3.13 and Git. The Windows example selects Python 3.12; the package supports all three versions. Installation downloads the declared Python dependencies, while the demo itself runs offline.
 
-```text
+~~~text
 git clone https://github.com/ericrosenn1/manuscriptforge.git
 cd manuscriptforge
-```
+~~~
 
 Windows PowerShell:
 
-```powershell
+~~~powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install .
 .\.venv\Scripts\manuscriptforge.exe demo ..\manuscriptforge-demo
-```
+~~~
 
 Linux or macOS shell:
 
-```bash
+~~~bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install .
 manuscriptforge demo ../manuscriptforge-demo
-```
+~~~
 
-Open `../manuscriptforge-demo/DEMO_REPORT.md`, then follow its links to the style guide, chunk review, and coverage report. Run the same demo command again to verify the saved outputs without changing them. The destination must be new, empty, or an unchanged completed demo.
+Open the generated DEMO_REPORT.md, then follow its links to the style guide, passage review, and coverage report. Running the same command again verifies the completed demo without changing it. The destination must be new, empty, or an unchanged completed demo.
 
-The validated [summary excerpt](examples/demo_expected_summary.json) includes:
+## What the offline demo produces
 
-```json
-{
-  "validation_status": "PASS",
-  "source_documents": 3,
-  "input_formats": [".docx", ".md", ".txt"],
-  "extracted_chunks": 7,
-  "approved_chunks": 6,
-  "excluded_duplicate_chunks": 1,
-  "profile_word_count": 432,
-  "profile_sentence_count": 26,
-  "style_cards": 8
-}
-```
+The demo uses three original synthetic documents about an invented distance-sensor documentation procedure: a Markdown protocol, a text run note, and a DOCX copy of the methods section. It extracts seven **chunks**, meaning section-labeled passages, and scripted review retains six while explicitly excluding the exact DOCX duplicate. A matching hash creates a warning; it does not automatically remove text.
 
-The fictional distance-workflow collection contains six sections and an exact methods duplicate. Scripted review explicitly excludes the duplicate; matching hashes alone do not remove it. Each retained section has one passage, so its coverage is **sparse**. These counts demonstrate the workflow, not writing quality, instrument performance, or learned author preferences. See the [demo walkthrough](docs/demo.md) for the content checks and expected limitations.
+The validated result contains:
 
-## Available scope
+- 3 source documents in Markdown, text, and DOCX
+- 7 extracted chunks, with 6 approved and 1 excluded duplicate
+- a 432-word descriptive profile across 6 sections
+- 8 **style cards**, which are short section reports with passage counts, length statistics, common signals, and source-linked examples
 
-| Capability | Status and boundary |
-| --- | --- |
-| Markdown, text, DOCX, and PDF extraction | Local extraction with cached text, source hashes, and status records. PDF requires a text layer; OCR is not implemented. |
-| Section detection and chunking | Rules recognize common headings and split long passages. References are excluded by default. |
-| Chunk curation | Review tables, warning flags, explicit approvals/exclusions, and a decision log. Strict approval is enabled in the demo; general project defaults are permissive. |
-| Descriptive profiles and style cards | Global and section counts, length distributions, terms, punctuation, and traceable text examples. Linguistic indicators use heuristics. |
-| Evidence and manuscript workflows | Experimental claim registries, citation mapping, audits, deterministic draft/review paths, and Markdown/DOCX/LaTeX/XLSX exports. Passing software checks does not establish scientific validity. |
-| Model-assisted drafting | Optional provider adapter. The demo and ordinary tests do not establish live-model performance. |
+These counts demonstrate the workflow on synthetic content. The [demo walkthrough](docs/demo.md) explains the collection, checks, and expected outputs.
 
-There is no trained personalized writer or validated style-quality metric in this release. Possible future work includes stronger format interpretation and evaluation with independently reviewed corpora; no release or maintenance schedule is promised.
+## Core workflow
 
-## Data flow
-
-```mermaid
+~~~mermaid
 flowchart LR
     S[Local writing samples] --> E[Extraction and source hashes]
     E --> C[Section chunks]
     C --> R[Registry and review decisions]
-    R --> P[Approved descriptive profile]
-    R --> V[Coverage reports]
-    P --> G[Style guide]
+    R --> P[Descriptive profile]
+    R --> V[Coverage report]
     R --> K[Style cards]
-    P -. optional experimental use .-> D[Draft and review workflow]
+    P -. optional path .-> D[Draft and review commands]
     I[Project inputs and evidence] -.-> D
     L[Optional model adapter] -.-> D
-```
+~~~
 
-The solid path is exercised by the demo with strict approval. The dashed branch represents separately invoked experimental functionality. [Architecture](docs/architecture.md) maps these steps to the public modules.
+1. Add local documents to a project and extract supported Markdown, text, DOCX, or text-based PDF files.
+2. Inspect the extracted chunks, their source hashes, section labels, warnings, and review state.
+3. Record approvals or exclusions in the chunk registry. Strict approval can be enabled before profiling.
+4. Build a descriptive profile and section-level style cards from the selected chunks.
+5. Use the profile, coverage report, and source links to review what entered each summary.
 
-## Inputs, outputs, and privacy
+The solid path is exercised by the offline demo. [Architecture](docs/architecture.md) maps the workflow to public modules.
 
-Projects have a `project.yaml`, an `inputs/` directory, and a `style_corpus/` directory. Style samples can be organized under modes such as `style_corpus/academic_manuscript/`. Extraction and curation derivatives live under `planning/intake/`; profiles and workflow results live under `outputs/`. The demo creates its entire project in the selected destination, outside the checkout in the quickstart above.
+## What is implemented
 
-Source documents remain separate from extracted text and reviewed derivatives. Chunk IDs, content hashes, source filenames, and decision notes link profile examples to their inputs. Curation decisions are local records and are not proof of independent human review; the demo labels its decisions as scripted.
+| Capability | Current behavior |
+| --- | --- |
+| Local document extraction | Extracts Markdown, text, DOCX, and text-based PDF files; stores source hashes, cached text, and extraction status. PDF OCR is not included. |
+| Chunking and curation | Recognizes common section headings, splits passages, records warnings, and preserves explicit approvals, exclusions, notes, and intended uses. |
+| Descriptive profiling | Calculates global and section-level counts, length distributions, terms, punctuation, and source-linked examples. Linguistic indicators are rule-based. |
+| Coverage and style cards | Shows where reviewed passages exist, flags sparse sections, and writes compact section reports. Passage-count indicators are not quality or validity measures. |
+| Optional manuscript and review commands | Provides claim registries, citations, audits, deterministic draft and review paths, and Markdown, DOCX, LaTeX, and XLSX exports when explicitly invoked. |
+| Optional provider adapter | Requires explicit configuration. The demo does not call a provider and does not need an API key, download a model, or require a GPU. |
 
-Import, help, and demo commands do not discover writing outside the selected project or start automation. Local artifacts can contain absolute source paths and source prose, including in profiles and style cards. They are not automatically anonymized. Review outputs before sharing them. Explicitly configuring a network-capable provider or metadata enrichment is a separate action; the demo sets local-only operation and never calls a provider.
+## Working with your own project
 
-See [working with your own project](docs/usage.md) for configuration and review commands.
+Create a separate project directory for local data and derivatives:
 
-## Development
+Activate the virtual environment before using the commands below. On Windows, use `.\.venv\Scripts\Activate.ps1`, or replace `manuscriptforge` with `.\.venv\Scripts\manuscriptforge.exe`.
 
-```text
+~~~text
+manuscriptforge init ../writing-project
+~~~
+
+Replace the starter text in inputs/abstract.md and inputs/methods.md, then add the writing samples you intend to analyze under style_corpus/academic_manuscript/. When those files are ready:
+
+~~~text
+manuscriptforge validate ../writing-project
+manuscriptforge extract-style-corpus ../writing-project --mode academic_manuscript
+manuscriptforge build-style-chunk-registry ../writing-project --mode academic_manuscript
+manuscriptforge style-chunk-report ../writing-project
+~~~
+
+Review the registry under planning/intake/style_chunks before approval. With strict approval enabled in project.yaml, a profile only uses chunks approved for the style_profile use:
+
+~~~text
+manuscriptforge style-chunk-approve ../writing-project --source-file style_corpus/academic_manuscript/sample.md --approve --approve-for style_profile --note "Reviewed for descriptive profiling."
+manuscriptforge profile-style ../writing-project
+manuscriptforge style-coverage-report ../writing-project --mode academic_manuscript
+manuscriptforge build-style-cards ../writing-project --mode academic_manuscript
+~~~
+
+See [working with your own project](docs/usage.md) for configuration, intended-use approvals, and detailed review commands.
+
+## Data handling
+
+The core corpus workflow reads documents from the selected project, and the demo does not search other locations. Profiles, cards, extraction records, and review tables can contain source prose and local paths. Review generated artifacts before sharing them. Network-capable providers and metadata enrichment require separate, explicit configuration; the demo uses local-only settings and no provider.
+
+## Development and supporting documentation
+
+The [demo walkthrough](docs/demo.md) describes the synthetic example. [Architecture](docs/architecture.md) explains artifact boundaries, and [development notes](docs/development.md) list the test, lint, type-check, build, and package-install checks.
+
+~~~text
 python -m pip install -e ".[dev]"
 python -m pytest
 python -m ruff check .
 python -m mypy manuscriptforge
 python -m build
-```
-
-Use the virtual environment's Python, or its full path on Windows. Tests use synthetic temporary projects and offline provider fixtures. The [development notes](docs/development.md) describe package validation and the limits of these checks.
+~~~
 
 ## Author and license
 
-Created by Eric H. Rosenn. This research prototype was developed with AI coding assistance; human review remains necessary for its code, outputs, and scientific use.
+Created by Eric H. Rosenn. This research software was developed with AI coding assistance; human review remains necessary for code, outputs, and scientific use.
 
-**License not yet specified.** No project-wide reuse license is granted here. Dependency licenses and any applicable third-party notices remain with their respective materials.
+**License not yet specified.** No project-wide reuse license is granted here. Dependency licenses and applicable third-party notices remain with their respective materials.

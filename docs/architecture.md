@@ -4,12 +4,12 @@ ManuscriptForge keeps source documents, extracted representations, review decisi
 
 | Module | Responsibility | Main artifacts |
 | --- | --- | --- |
-| `config.py`, `models/project.py` | Merge and validate project settings; check project inputs | `project.yaml`, validation findings |
-| `style/document_extractors.py` | Discover configured local samples, extract supported formats, cache text and source hashes | Extraction manifest, cached text, extraction report |
-| `ingest/style_ingest.py` | Recognize headings and split section text into stable chunks | `StyleChunk` IDs, text, section labels, hashes |
-| `style/curation.py` | Persist chunk review state, apply explicit approvals/exclusions, report coverage, build cards | CSV/JSONL registry, decision log, Markdown/XLSX reports |
-| `style/profiler.py`, `style/features.py` | Calculate descriptive features on selected chunks | Global and section profiles, chunk index, style guide |
-| `demo.py` | Supply original synthetic inputs and check the public workflow's outputs | Demo report, portable summary, integrity manifest |
+| [config.py](../manuscriptforge/config.py), [models/project.py](../manuscriptforge/models/project.py) | Merge and validate project settings; check project inputs | project.yaml, validation findings |
+| [style/document_extractors.py](../manuscriptforge/style/document_extractors.py) | Discover configured local samples, extract supported formats, cache text and source hashes | Extraction manifest, cached text, extraction report |
+| [ingest/style_ingest.py](../manuscriptforge/ingest/style_ingest.py) | Recognize headings and split section text into stable chunks | StyleChunk IDs, text, section labels, hashes |
+| [style/curation.py](../manuscriptforge/style/curation.py) | Persist chunk review state, apply explicit approvals/exclusions, report coverage, build cards | CSV/JSONL registry, decision log, Markdown/XLSX reports |
+| [style/profiler.py](../manuscriptforge/style/profiler.py), [style/features.py](../manuscriptforge/style/features.py) | Calculate descriptive features on selected chunks | Global and section profiles, chunk index, style guide |
+| [demo.py](../manuscriptforge/demo.py) | Supply original synthetic inputs and check the public workflow's outputs | Demo report, portable summary, integrity manifest |
 
 ## Identity and curation
 

@@ -1,6 +1,10 @@
 # Working with your own project
 
+A chunk is an extracted, section-labeled passage. A style card is a compact section report with passage counts, descriptive signals, and source-linked examples.
+
 Inspect available commands with `manuscriptforge --help` and a command's options with `manuscriptforge COMMAND --help`. Use a separate project directory for your data and derivatives.
+
+Activate the virtual environment shown in the README before using the commands below. On Windows, use `.\.venv\Scripts\Activate.ps1`, or replace `manuscriptforge` with `.\.venv\Scripts\manuscriptforge.exe`.
 
 ```text
 manuscriptforge init ../writing-project
@@ -58,6 +62,8 @@ manuscriptforge build-style-cards ../writing-project --mode academic_manuscript
 ```
 
 The profile command writes a run under `outputs/runs/` and updates `outputs/latest/`. Coverage and cards are written under `planning/intake/`. Profile examples and extraction records preserve text and source information. Review them before sharing or committing anything.
+
+On a new chunk, --approve-for grants only the named use. On an already approved chunk, it adds the named use without removing existing ones. For example, style_profile permits descriptive profiling but not evaluation-set export; use style_eval for build-style-eval. Omitting --approve-for grants all supported uses only when the chunk has no recorded uses, and otherwise preserves its existing uses.
 
 ## Optional integrations
 

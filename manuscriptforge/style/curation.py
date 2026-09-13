@@ -448,7 +448,7 @@ def _registry_rows_from_chunks(
             extraction_status=chunk.extraction_status,
             section_confidence=_section_confidence(chunk),  # type: ignore[arg-type]
             approval_status=_default_status(flags),  # type: ignore[arg-type]
-            approved_for=CHUNK_APPROVED_USES.copy(),  # type: ignore[arg-type]
+            approved_for=[],
             warning_flags=sorted(set(flags)),
         )
         if old is not None:
@@ -573,8 +573,12 @@ def _registry_by_chunk(project_dir: Path) -> dict[str, StyleChunkRegistryRow]:
 def apply_chunk_curation_to_profile_chunks(
     project_dir: Path,
     chunks: list[StyleChunk],
+    *,
+    required_use: str = "style_profile",
 ) -> tuple[list[StyleChunk], dict[str, Any]]:
-    """Filter style chunks according to the optional chunk registry."""
+    """Filter chunks according to the optional registry and an intended use."""
+    if required_use not in CHUNK_APPROVED_USES:
+        raise ValueError(f"Unsupported chunk use: {required_use}")
     config = _load_config(project_dir)
     registry_path = chunk_registry_jsonl_path(project_dir)
     if not registry_path.exists() and chunk_registry_csv_path(project_dir).exists():
@@ -584,7 +588,7 @@ def apply_chunk_curation_to_profile_chunks(
             return [], {
                 "chunk_registry_used": False,
                 "require_chunk_approval": True,
-                "approved_style_profile_chunks": 0,
+                f"approved_{required_use}_chunks": 0,
                 "chunks_before_curation": len(chunks),
                 "chunks_after_curation": 0,
                 "excluded_chunks": len(chunks),
@@ -595,7 +599,7 @@ def apply_chunk_curation_to_profile_chunks(
     approved_count = sum(
         1
         for row in rows_by_chunk.values()
-        if row.approval_status == "approved" and "style_profile" in row.approved_for and not row.missing
+        if row.approval_status == "approved" and required_use in row.approved_for and not row.missing
     )
     filtered: list[StyleChunk] = []
     excluded = 0
@@ -616,13 +620,13 @@ def apply_chunk_curation_to_profile_chunks(
             warning_excluded += 1
             continue
         if config.style.curation.require_chunk_approval:
-            if row.approval_status == "approved" and "style_profile" in row.approved_for:
+            if row.approval_status == "approved" and required_use in row.approved_for:
                 filtered.append(chunk)
             else:
                 excluded += 1
             continue
         if row.approval_status == "approved":
-            if "style_profile" in row.approved_for:
+            if required_use in row.approved_for:
                 filtered.append(chunk)
             else:
                 excluded += 1
@@ -642,7 +646,7 @@ def apply_chunk_curation_to_profile_chunks(
         "chunk_registry_used": True,
         "chunk_registry_path": registry_path.relative_to(project_dir).as_posix(),
         "require_chunk_approval": config.style.curation.require_chunk_approval,
-        "approved_style_profile_chunks": approved_count,
+        f"approved_{required_use}_chunks": approved_count,
         "chunks_before_curation": len(chunks),
         "chunks_after_curation": len(filtered),
         "excluded_chunks": excluded,
@@ -902,10 +906,12 @@ def build_style_coverage_report(project_dir: Path, *, mode: str | None = None) -
         "",
         f"- Selected mode: `{selected_mode}`",
         f"- Coursework isolated from academic: {data['coursework_isolated_from_academic']}",
+        "- Passage-count indicators: absent is 0 approved chunks, sparse is 1 to 2, usable is 3 to 7, and strong is 8 or more.",
+        "- The check is true from 3 approved chunks. It is not a quality, validity, or statistical readiness measure.",
         "",
         "## Coverage Matrix",
         "",
-        "| Section | Total chunks | Approved chunks | Strength | Ready |",
+        "| Section | Total chunks | Approved chunks | Passage-count indicator | Meets 3-passage check |",
         "| --- | ---: | ---: | --- | --- |",
     ]
     for row in section_rows:
@@ -989,7 +995,7 @@ def _render_style_card(mode: str, section: str, chunks: list[StyleChunk]) -> tup
         "limitation_phrasing_notes": limitation_style[:5],
         "representative_short_examples": examples,
         "do_not_overinterpret_warnings": [
-            "Style cards summarize private local examples; they are not factual evidence.",
+            "Style cards summarize supplied writing samples; they are not factual evidence.",
             "Low chunk counts should be treated as provisional.",
         ],
         "recommended_drafting_instructions": [
@@ -1002,7 +1008,7 @@ def _render_style_card(mode: str, section: str, chunks: list[StyleChunk]) -> tup
         "",
         f"- Style mode: `{mode}`",
         f"- Section type: `{section}`",
-        f"- Confidence: {data['confidence']}",
+        f"- Passage-count indicator: {data['confidence']}",
         f"- Chunk count: {len(chunks)}",
         f"- Corpus files used: {', '.join(corpus_files) if corpus_files else 'none'}",
         f"- Typical sentence length: {typical_sentence_length.get('mean')}",
@@ -1024,9 +1030,10 @@ def _render_style_card(mode: str, section: str, chunks: list[StyleChunk]) -> tup
     lines.extend(
         [
             "",
-            "## Do Not Overinterpret",
-            "- Style cards summarize private local examples; they are not factual evidence.",
-            "- Low chunk counts should be treated as provisional.",
+            "## Interpreting This Card",
+            "- The passage-count indicator is absent for 0 chunks, low for 1 to 2, medium for 3 to 7, and high for 8 or more.",
+            "- It is a count-based guide, not a quality, validity, or statistical confidence measure.",
+            "- Style cards summarize supplied writing samples; they are not factual evidence.",
             "",
             "## Recommended Drafting Instructions",
             "- Use these patterns for tone and pacing only.",
@@ -1037,7 +1044,7 @@ def _render_style_card(mode: str, section: str, chunks: list[StyleChunk]) -> tup
 
 
 def build_style_cards(project_dir: Path, *, mode: str | None = None) -> StyleCardsResult:
-    """Write private local style cards by mode and section."""
+    """Write local style cards by mode and section."""
     project_dir = Path(project_dir)
     selected_mode = normalize_style_mode(mode or _load_config(project_dir).style.active_mode)
     chunks, curation_summary = _chunks_for_cards(project_dir, selected_mode)

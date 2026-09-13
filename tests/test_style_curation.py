@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 
 from manuscriptforge.cli import app
 from manuscriptforge.style.curation import coverage_strength
+from manuscriptforge.style.evaluation import build_style_evaluation_set
 from manuscriptforge.utils.io import read_json, read_yaml, write_yaml
 
 
@@ -193,6 +194,73 @@ def test_profile_style_uses_only_approved_chunks_when_required(tmp_path: Path) -
     profile = read_json(project_dir / "outputs" / "latest" / "style_profile.json")
     assert keep.relative_to(project_dir).as_posix() in profile["corpus_files"]
     assert drop.relative_to(project_dir).as_posix() not in profile["corpus_files"]
+
+
+def test_style_eval_respects_explicit_use_and_exclusions(tmp_path: Path) -> None:
+    project_dir = _prep_project(tmp_path)
+    keep = _write_style_file(project_dir, "academic_manuscript", "keep.md", _toy_methods_text("Keep this example."))
+    profile_only = _write_style_file(
+        project_dir,
+        "academic_manuscript",
+        "profile_only.md",
+        _toy_methods_text("Keep this for descriptive profiling only."),
+    )
+    excluded = _write_style_file(
+        project_dir,
+        "academic_manuscript",
+        "excluded.md",
+        _toy_methods_text("This passage must not enter evaluation."),
+    )
+    config = read_yaml(project_dir / "project.yaml")
+    config.setdefault("style", {}).setdefault("curation", {})["require_chunk_approval"] = True
+    write_yaml(project_dir / "project.yaml", config)
+    runner = CliRunner()
+    assert runner.invoke(app, ["build-style-chunk-registry", str(project_dir)]).exit_code == 0
+    assert runner.invoke(
+        app,
+        [
+            "style-chunk-approve",
+            str(project_dir),
+            "--source-file",
+            keep.relative_to(project_dir).as_posix(),
+            "--approve",
+            "--approve-for",
+            "style_eval",
+        ],
+    ).exit_code == 0
+    assert runner.invoke(
+        app,
+        [
+            "style-chunk-approve",
+            str(project_dir),
+            "--source-file",
+            profile_only.relative_to(project_dir).as_posix(),
+            "--approve",
+            "--approve-for",
+            "style_profile",
+        ],
+    ).exit_code == 0
+    assert runner.invoke(
+        app,
+        [
+            "style-chunk-approve",
+            str(project_dir),
+            "--source-file",
+            excluded.relative_to(project_dir).as_posix(),
+            "--exclude",
+        ],
+    ).exit_code == 0
+
+    rows = _jsonl(project_dir / "planning" / "intake" / "style_chunks" / "style_chunks_registry.jsonl")
+    keep_row = next(row for row in rows if row["source_file"] == keep.relative_to(project_dir).as_posix())
+    assert keep_row["approved_for"] == ["style_eval"]
+    run_dir = tmp_path / "style_eval"
+    run_dir.mkdir()
+    counts = build_style_evaluation_set(project_dir, run_dir)
+    pair_rows = _jsonl(run_dir / "style_eval_pairs.jsonl")
+    assert counts["style_chunks"] == 1
+    assert pair_rows
+    assert {row["source_chunk_id"] for row in pair_rows} == {keep_row["chunk_id"]}
 
 
 def test_style_coverage_report_marks_absent_sparse_usable_strong(tmp_path: Path) -> None:

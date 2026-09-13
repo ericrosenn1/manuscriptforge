@@ -980,9 +980,25 @@ def render_feedback_summary(summary: FeedbackSummary) -> str:
         lines.append(f"- {key}: {value}")
     lines.extend(["", "## Recommended Next Feedback Questions"])
     lines.extend(f"- {item}" for item in details.get("recommended_next_feedback_questions", []))
-    lines.extend(["", "## Fine-Tuning Readiness"])
+    lines.extend(
+        [
+            "",
+            "## Feedback Collection Checklist",
+            "These flags compare review counts with the package's configured export thresholds. "
+            "They do not authorize model training or replace privacy and human review.",
+        ]
+    )
+    labels = {
+        "ready_for_fine_tuning_export": "Meets configured export count thresholds",
+        "minimum_accepted_rewrites_met": "At least 100 accepted rewrites",
+        "minimum_rejected_variants_met": "At least 100 rejected variants",
+        "section_coverage": "Sections represented",
+        "enough_for_train_validation_split": "At least 120 accepted and rejected items",
+        "privacy_review_needed": "Privacy review needed",
+        "human_review_status": "Human review status",
+    }
     for key, value in details.get("fine_tuning_readiness", {}).items():
-        lines.append(f"- {key}: {value}")
+        lines.append(f"- {labels.get(key, key)}: {value}")
     return "\n".join(lines).strip() + "\n"
 
 

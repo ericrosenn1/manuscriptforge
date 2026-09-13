@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from manuscriptforge.ingest.style_ingest import build_style_chunks
+from manuscriptforge.style.curation import apply_chunk_curation_to_profile_chunks
 from manuscriptforge.utils.ids import stable_id
 from manuscriptforge.utils.io import write_jsonl
 from manuscriptforge.utils.text import split_paragraphs, split_sentences
@@ -38,7 +39,11 @@ def _rank_options(sentence: str, section_type: str) -> list[str]:
 
 
 def build_style_evaluation_set(project_dir: Path, run_dir: Path) -> dict[str, int]:
-    chunks = build_style_chunks(project_dir)
+    chunks, _curation_summary = apply_chunk_curation_to_profile_chunks(
+        project_dir,
+        build_style_chunks(project_dir),
+        required_use="style_eval",
+    )
     pair_rows: list[dict[str, Any]] = []
     rewrite_rows: list[dict[str, Any]] = []
     rank_rows: list[dict[str, Any]] = []
@@ -105,7 +110,7 @@ def build_style_evaluation_set(project_dir: Path, run_dir: Path) -> dict[str, in
                     "section_type": chunk.section_type,
                     "style_mode": chunk.style_mode,
                     "source_chunk_id": chunk.chunk_id,
-                    "prompt": "Rewrite the neutral paragraph in the user's manuscript style.",
+                    "prompt": "Rewrite the neutral paragraph using the selected manuscript style.",
                     "neutral_paragraph": _neutralize_sentence(paragraph),
                     "target_user_paragraph": paragraph,
                     "private_writing": True,

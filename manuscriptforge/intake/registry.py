@@ -904,8 +904,8 @@ def _write_templates(folder: Path) -> list[Path]:
             "- Put first-author manuscripts in `academic_manuscript`.\n"
             "- Put homework/explanatory assignments in `coursework_explanatory`.\n"
             "- Do not mix coursework into academic manuscript mode unless intentionally included.\n"
-            "- Use 5 to 10 academic manuscript samples for the first pilot.\n"
-            "- Add 50 to 70 later only after the first pilot is working.\n",
+            "- Add reviewed samples that cover the manuscript sections relevant to your use.\n"
+            "- Keep samples with different purposes in separate style modes.\n",
         )
         written.append(plan_path)
     return written
