@@ -10,27 +10,27 @@ The workflow helps researchers assemble an inspectable collection of examples fo
 
 Use Python 3.11, 3.12, or 3.13 and Git. The Windows example selects Python 3.12; the package supports all three versions. Installation downloads the declared Python dependencies, while the demo itself runs offline.
 
-~~~text
+```text
 git clone https://github.com/ericrosenn1/manuscriptforge.git
 cd manuscriptforge
-~~~
+```
 
 Windows PowerShell:
 
-~~~powershell
+```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install .
 .\.venv\Scripts\manuscriptforge.exe demo ..\manuscriptforge-demo
-~~~
+```
 
 Linux or macOS shell:
 
-~~~bash
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install .
 manuscriptforge demo ../manuscriptforge-demo
-~~~
+```
 
 Open the generated DEMO_REPORT.md, then follow its links to the style guide, passage review, and coverage report. Running the same command again verifies the completed demo without changing it. The destination must be new, empty, or an unchanged completed demo.
 
@@ -49,7 +49,7 @@ These counts demonstrate the workflow on synthetic content. The [demo walkthroug
 
 ## Core workflow
 
-~~~mermaid
+```mermaid
 flowchart LR
     S[Local writing samples] --> E[Extraction and source hashes]
     E --> C[Section chunks]
@@ -60,7 +60,7 @@ flowchart LR
     P -. optional path .-> D[Draft and review commands]
     I[Project inputs and evidence] -.-> D
     L[Optional model adapter] -.-> D
-~~~
+```
 
 1. Add local documents to a project and extract supported Markdown, text, DOCX, or text-based PDF files.
 2. Inspect the extracted chunks, their source hashes, section labels, warnings, and review state.
@@ -87,27 +87,27 @@ Create a separate project directory for local data and derivatives:
 
 Activate the virtual environment before using the commands below. On Windows, use `.\.venv\Scripts\Activate.ps1`, or replace `manuscriptforge` with `.\.venv\Scripts\manuscriptforge.exe`.
 
-~~~text
+```text
 manuscriptforge init ../writing-project
-~~~
+```
 
 Replace the starter text in inputs/abstract.md and inputs/methods.md, then add the writing samples you intend to analyze under style_corpus/academic_manuscript/. When those files are ready:
 
-~~~text
+```text
 manuscriptforge validate ../writing-project
 manuscriptforge extract-style-corpus ../writing-project --mode academic_manuscript
 manuscriptforge build-style-chunk-registry ../writing-project --mode academic_manuscript
 manuscriptforge style-chunk-report ../writing-project
-~~~
+```
 
 Review the registry under planning/intake/style_chunks before approval. With strict approval enabled in project.yaml, a profile only uses chunks approved for the style_profile use:
 
-~~~text
+```text
 manuscriptforge style-chunk-approve ../writing-project --source-file style_corpus/academic_manuscript/sample.md --approve --approve-for style_profile --note "Reviewed for descriptive profiling."
 manuscriptforge profile-style ../writing-project
 manuscriptforge style-coverage-report ../writing-project --mode academic_manuscript
 manuscriptforge build-style-cards ../writing-project --mode academic_manuscript
-~~~
+```
 
 See [working with your own project](docs/usage.md) for configuration, intended-use approvals, and detailed review commands.
 
@@ -119,13 +119,13 @@ The core corpus workflow reads documents from the selected project, and the demo
 
 The [demo walkthrough](docs/demo.md) describes the synthetic example. [Architecture](docs/architecture.md) explains artifact boundaries, and [development notes](docs/development.md) list the test, lint, type-check, build, and package-install checks.
 
-~~~text
+```text
 python -m pip install -e ".[dev]"
 python -m pytest
 python -m ruff check .
 python -m mypy manuscriptforge
 python -m build
-~~~
+```
 
 ## Author and license
 
