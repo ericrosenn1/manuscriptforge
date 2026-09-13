@@ -60,6 +60,7 @@ def main() -> None:
         env = {key: value for key, value in os.environ.items() if key not in {"PYTHONPATH", "OPENAI_API_KEY", "OPENAI_MODEL"}}
         env["PYTHONNOUSERSITE"] = "1"
         subprocess.run([str(python), "-m", "pip", "install", str(distribution)], cwd=root, env=env, check=True)
+        subprocess.run([str(python), "-m", "pip", "check"], cwd=root, env=env, check=True)
         probe = root / "check.py"
         probe.write_text(PROBE, encoding="utf-8")
         subprocess.run([str(python), str(probe)], cwd=root, env=env, check=True)

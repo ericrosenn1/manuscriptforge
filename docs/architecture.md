@@ -29,4 +29,4 @@ Heading recognition, sentence splitting, hedging terms, passive-voice estimates,
 
 Other retained modules provide project/table/source ingestion, claim extraction and citation mapping, section drafting, audits, reviewer-style checks, feedback capture, and exports. `pipeline/workflow.py` coordinates these actions when explicitly invoked. `llm/mock_provider.py` supplies deterministic test behavior, while `llm/openai_provider.py` is an optional network-capable adapter.
 
-This path is separate from the offline demonstration. Audit findings depend on supplied inputs and heuristic rules; they do not establish the truth of a claim, adequacy of an experimental design, citation correctness, or preservation of scientific meaning. Mock outputs and style benchmarks are development instruments, not evidence of live writer performance. No unattended development controller or training service is part of the public package.
+This path is separate from the offline demonstration. Audit findings flag patterns in supplied inputs for review. Mock-provider outputs and style benchmarks exercise deterministic rules; live-model writing quality has not been validated by the public demo.

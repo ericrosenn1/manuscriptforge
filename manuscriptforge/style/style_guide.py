@@ -11,7 +11,7 @@ def render_style_guide(profile: StyleProfile) -> str:
     lines = [
         "# Style Guide",
         "",
-        "This guide is derived from the supplied style corpus. It is an approximation, not a claim of perfect imitation.",
+        "This guide summarizes descriptive statistics and examples from the selected writing passages.",
         "",
         "## Corpus",
         f"- Files: {len(profile.corpus_files)}",

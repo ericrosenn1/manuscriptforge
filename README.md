@@ -1,10 +1,10 @@
 # ManuscriptForge
 
-ManuscriptForge organizes an author's writing samples into reviewed passages and section-specific style summaries. Its Python tools extract text from local documents, record which passages are included or excluded, and generate reports that link summaries back to their source material.
+ManuscriptForge turns local writing documents into reviewed passages, descriptive style profiles, and reports linked to their sources.
 
-The workflow helps researchers assemble an inspectable collection of examples for consistent manuscript preparation, rather than mixing whole documents and unreviewed passages. It can also provide a transparent starting point for future personalized writing workflows. It does not train a model or automatically reproduce an author's prose.
+A writing **corpus** is a collection of writing samples. Researchers can use ManuscriptForge to inspect that collection, decide which passages belong in it, and compare descriptive statistics and examples across manuscript sections. The recorded decisions and source links make it possible to see exactly which text contributed to a summary.
 
-**Experimental research software.** The implemented core workflow is local extraction, passage curation, descriptive profiling, and traceable reporting. Optional manuscript, evidence, and review commands need human assessment.
+[![CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml?query=branch%3Amain)
 
 ## Quick start
 
@@ -32,103 +32,67 @@ python -m pip install .
 manuscriptforge demo ../manuscriptforge-demo
 ```
 
-Open the generated DEMO_REPORT.md, then follow its links to the style guide, passage review, and coverage report. Running the same command again verifies the completed demo without changing it. The destination must be new, empty, or an unchanged completed demo.
+Open the generated `DEMO_REPORT.md` first. It links to the style guide, passage review, coverage report, and a style card. Running the same command again verifies the completed demo without changing it. The destination must be new, empty, or an unchanged completed demo.
 
 ## What the offline demo produces
 
-The demo uses three original synthetic documents about an invented distance-sensor documentation procedure: a Markdown protocol, a text run note, and a DOCX copy of the methods section. It extracts seven **chunks**, meaning section-labeled passages, and scripted review retains six while explicitly excluding the exact DOCX duplicate. A matching hash creates a warning; it does not automatically remove text.
+The demo uses three synthetic documents about an invented distance-sensor documentation procedure. It extracts **chunks**, meaning section-labeled passages, then applies scripted inclusion and exclusion decisions. The DOCX repeats the Markdown methods text: matching hashes flag both copies, and an explicit decision excludes the duplicate.
 
-The validated result contains:
+| Output | Demonstrated result |
+| --- | --- |
+| Extraction | 3 documents in Markdown, text, and DOCX; 7 chunks |
+| Passage review | 6 approved chunks and 1 excluded duplicate |
+| Style profile | Descriptive statistics and examples from 432 words across 6 sections |
+| Style cards | 8 compact reports for individual sections and the overall collection |
 
-- 3 source documents in Markdown, text, and DOCX
-- 7 extracted chunks, with 6 approved and 1 excluded duplicate
-- a 432-word descriptive profile across 6 sections
-- 8 **style cards**, which are short section reports with passage counts, length statistics, common signals, and source-linked examples
-
-These counts demonstrate the workflow on synthetic content. The [demo walkthrough](docs/demo.md) explains the collection, checks, and expected outputs.
+The demo needs no model provider, API key, or GPU. The [walkthrough](docs/demo.md) explains the input collection, checks, and reports.
 
 ## Core workflow
 
 ```mermaid
 flowchart LR
-    S[Local writing samples] --> E[Extraction and source hashes]
-    E --> C[Section chunks]
-    C --> R[Registry and review decisions]
-    R --> P[Descriptive profile]
-    R --> V[Coverage report]
-    R --> K[Style cards]
-    P -. optional path .-> D[Draft and review commands]
-    I[Project inputs and evidence] -.-> D
-    L[Optional model adapter] -.-> D
+    S[Writing documents] --> E[Extracted passages]
+    E --> C[Inclusion and exclusion decisions]
+    C --> P[Profiles by manuscript section]
+    P --> R[Reports and source-linked examples]
 ```
 
-1. Add local documents to a project and extract supported Markdown, text, DOCX, or text-based PDF files.
-2. Inspect the extracted chunks, their source hashes, section labels, warnings, and review state.
-3. Record approvals or exclusions in the chunk registry. Strict approval can be enabled before profiling.
-4. Build a descriptive profile and section-level style cards from the selected chunks.
-5. Use the profile, coverage report, and source links to review what entered each summary.
-
-The solid path is exercised by the offline demo. [Architecture](docs/architecture.md) maps the workflow to public modules.
+**Curation** means deciding which passages are included or excluded. The demo requires explicit approval before profiling; for your own project, enable strict approval as shown in the [usage guide](docs/usage.md). [Architecture](docs/architecture.md) maps this workflow to the implementation.
 
 ## What is implemented
 
 | Capability | Current behavior |
 | --- | --- |
 | Local document extraction | Extracts Markdown, text, DOCX, and text-based PDF files; stores source hashes, cached text, and extraction status. PDF OCR is not included. |
-| Chunking and curation | Recognizes common section headings, splits passages, records warnings, and preserves explicit approvals, exclusions, notes, and intended uses. |
+| Chunking and curation | Recognizes common section headings, splits passages, and preserves approvals, exclusions, review notes, and which uses each passage is approved for. |
 | Descriptive profiling | Calculates global and section-level counts, length distributions, terms, punctuation, and source-linked examples. Linguistic indicators are rule-based. |
-| Coverage and style cards | Shows where reviewed passages exist, flags sparse sections, and writes compact section reports. Passage-count indicators are not quality or validity measures. |
-| Optional manuscript and review commands | Provides claim registries, citations, audits, deterministic draft and review paths, and Markdown, DOCX, LaTeX, and XLSX exports when explicitly invoked. |
-| Optional provider adapter | Requires explicit configuration. The demo does not call a provider and does not need an API key, download a model, or require a GPU. |
+| Coverage and style cards | Shows passage counts by section, flags sparse sections, and writes section reports with examples. Coverage labels describe counts, not writing quality; [the walkthrough](docs/demo.md#reading-the-outputs) defines the thresholds. |
 
-## Working with your own project
+### Experimental and optional components
 
-Create a separate project directory for local data and derivatives:
+Additional commands support claim and citation records, drafting, audits, feedback, and Markdown, DOCX, LaTeX, and XLSX exports. A model-provider adapter and local interface are optional integrations. See the [experimental manuscript path](docs/architecture.md#experimental-manuscript-path) for their scope.
 
-Activate the virtual environment before using the commands below. On Windows, use `.\.venv\Scripts\Activate.ps1`, or replace `manuscriptforge` with `.\.venv\Scripts\manuscriptforge.exe`.
+## Using your own corpus
 
-```text
-manuscriptforge init ../writing-project
-```
-
-Replace the starter text in inputs/abstract.md and inputs/methods.md, then add the writing samples you intend to analyze under style_corpus/academic_manuscript/. When those files are ready:
-
-```text
-manuscriptforge validate ../writing-project
-manuscriptforge extract-style-corpus ../writing-project --mode academic_manuscript
-manuscriptforge build-style-chunk-registry ../writing-project --mode academic_manuscript
-manuscriptforge style-chunk-report ../writing-project
-```
-
-Review the registry under planning/intake/style_chunks before approval. With strict approval enabled in project.yaml, a profile only uses chunks approved for the style_profile use:
-
-```text
-manuscriptforge style-chunk-approve ../writing-project --source-file style_corpus/academic_manuscript/sample.md --approve --approve-for style_profile --note "Reviewed for descriptive profiling."
-manuscriptforge profile-style ../writing-project
-manuscriptforge style-coverage-report ../writing-project --mode academic_manuscript
-manuscriptforge build-style-cards ../writing-project --mode academic_manuscript
-```
-
-See [working with your own project](docs/usage.md) for configuration, intended-use approvals, and detailed review commands.
+Create a separate project directory and add the writing samples you want to analyze. The [usage guide](docs/usage.md) walks through configuration, extraction, passage review, approval for specific uses, and report generation.
 
 ## Data handling
 
-The core corpus workflow reads documents from the selected project, and the demo does not search other locations. Profiles, cards, extraction records, and review tables can contain source prose and local paths. Review generated artifacts before sharing them. Network-capable providers and metadata enrichment require separate, explicit configuration; the demo uses local-only settings and no provider.
+The core corpus workflow reads documents from the selected project. Profiles, cards, extraction records, and review tables can contain source prose and local paths, so inspect generated artifacts before sharing them. Network-capable providers and metadata enrichment require separate, explicit configuration.
 
 ## Development and supporting documentation
 
-The [demo walkthrough](docs/demo.md) describes the synthetic example. [Architecture](docs/architecture.md) explains artifact boundaries, and [development notes](docs/development.md) list the test, lint, type-check, build, and package-install checks.
+| Guide | Contents |
+| --- | --- |
+| [Demo walkthrough](docs/demo.md) | Synthetic inputs, review decisions, reports, and unchanged-rerun checks |
+| [Usage](docs/usage.md) | Configure and analyze your own writing collection |
+| [Architecture](docs/architecture.md) | Modules, artifact structure, and optional components |
+| [Development](docs/development.md) | Tests, lint, typing, builds, and installed-package checks |
 
-```text
-python -m pip install -e ".[dev]"
-python -m pytest
-python -m ruff check .
-python -m mypy manuscriptforge
-python -m build
-```
+## Project status, author, and citation
 
-## Author and license
+Version 0.1.0 is an initial research prototype centered on the offline corpus workflow. It provides a foundation for exploring personalized writing workflows, but does not train a personal model or validate imitation of an author's style.
 
-Created by Eric H. Rosenn. This research software was developed with AI coding assistance; human review remains necessary for code, outputs, and scientific use.
+Created by Eric H. Rosenn with AI coding assistance. Citation metadata is available in [CITATION.cff](CITATION.cff).
 
 **License not yet specified.** No project-wide reuse license is granted here. Dependency licenses and applicable third-party notices remain with their respective materials.

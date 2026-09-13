@@ -231,7 +231,7 @@ def audit_style_details(
             _finding(
                 "methods_vague",
                 "warning",
-                "Methods prose is too vague for the user's section-specific style.",
+                "Methods prose may be missing concrete procedural details.",
                 "Methods",
                 "Add concrete software, version, preprocessing, sample, and statistical details from supplied inputs.",
             )
@@ -243,7 +243,7 @@ def audit_style_details(
             _finding(
                 "results_interpretive",
                 "warning",
-                "Results prose may be more interpretive than the user's Results style.",
+                "Results prose contains language that may belong in Discussion.",
                 "Results",
                 "Keep Results descriptive and move interpretation to Discussion.",
             )

@@ -9,6 +9,16 @@ description = "Local writing-corpus analysis, curated style profiles, and tracea
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 authors = [{ name = "Eric H. Rosenn" }]
+keywords = ["writing-corpus", "document-processing", "scientific-writing", "reproducibility"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing",
+]
 dependencies = [
   "bibtexparser>=1.4,<2",
   "jinja2>=3.1",
@@ -32,6 +42,10 @@ dev = [
 openai = ["openai>=1.40"]
 ui = ["streamlit>=1.35"]
 
+[project.urls]
+Repository = "https://github.com/ericrosenn1/manuscriptforge"
+Issues = "https://github.com/ericrosenn1/manuscriptforge/issues"
+
 [project.scripts]
 manuscriptforge = "manuscriptforge.cli:app"
 
@@ -39,7 +53,7 @@ manuscriptforge = "manuscriptforge.cli:app"
 packages = ["manuscriptforge"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/.gitignore", "/.gitattributes"]
+include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/CITATION.cff", "/.gitignore", "/.gitattributes"]
 
 [tool.ruff]
 line-length = 100

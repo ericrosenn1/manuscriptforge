@@ -908,7 +908,7 @@ def build_style_chunk_registry_command(
     force: Annotated[bool, typer.Option("--force", help="Force style text re-extraction before chunking.")] = False,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Build the local chunk-level style curation registry."""
+    """Build a table of extracted passages and their review decisions."""
     try:
         result = run_build_style_chunk_registry(project_dir, mode=mode, force=force)
     except Exception as exc:
@@ -938,7 +938,7 @@ def style_chunk_report_command(
     section: Annotated[str | None, typer.Option("--section", help="Section type to report.")] = None,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Summarize style chunk quality and review needs."""
+    """Summarize passage warnings and review decisions."""
     try:
         result = run_style_chunk_report(project_dir, mode=mode, section=section)
     except Exception as exc:
@@ -1010,7 +1010,7 @@ def style_coverage_report_command(
     mode: Annotated[str | None, typer.Option("--mode", help="Style mode to report.")] = None,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Report section-level style coverage and balance."""
+    """Report total and approved passage counts by manuscript section."""
     try:
         result = run_style_coverage_report(project_dir, mode=mode)
     except Exception as exc:
@@ -1036,7 +1036,7 @@ def build_style_cards_command(
     mode: Annotated[str | None, typer.Option("--mode", help="Style mode to summarize.")] = None,
     debug: Annotated[bool, DEBUG_OPTION] = False,
 ) -> None:
-    """Build local style cards by mode and section."""
+    """Build compact section reports with statistics and source examples."""
     try:
         result = run_build_style_cards(project_dir, mode=mode)
     except Exception as exc:

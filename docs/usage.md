@@ -1,6 +1,8 @@
 # Working with your own project
 
-A chunk is an extracted, section-labeled passage. A style card is a compact section report with passage counts, descriptive signals, and source-linked examples.
+A corpus is a collection of writing samples. The pipeline splits the extracted text into **chunks**, or section-labeled passages. **Curation** means deciding which passages to include or exclude; the **registry** is the table that stores passage records and review decisions.
+
+A **style profile** contains descriptive statistics and examples from selected passages. A **style card** is a compact report for one manuscript section or the overall collection. Reports keep passage IDs and source links so you can trace each summary back to its inputs.
 
 Inspect available commands with `manuscriptforge --help` and a command's options with `manuscriptforge COMMAND --help`. Use a separate project directory for your data and derivatives.
 
@@ -63,10 +65,10 @@ manuscriptforge build-style-cards ../writing-project --mode academic_manuscript
 
 The profile command writes a run under `outputs/runs/` and updates `outputs/latest/`. Coverage and cards are written under `planning/intake/`. Profile examples and extraction records preserve text and source information. Review them before sharing or committing anything.
 
-On a new chunk, --approve-for grants only the named use. On an already approved chunk, it adds the named use without removing existing ones. For example, style_profile permits descriptive profiling but not evaluation-set export; use style_eval for build-style-eval. Omitting --approve-for grants all supported uses only when the chunk has no recorded uses, and otherwise preserves its existing uses.
+An **intended use** names a task the passage is approved for. On a new chunk, `--approve-for` grants only the named use. On an already approved chunk, it adds the named use without removing existing ones. For example, `style_profile` permits descriptive profiling but not evaluation-set export; use `style_eval` for `build-style-eval`. Omitting `--approve-for` grants all supported uses only when the chunk has no recorded uses, and otherwise preserves its existing uses.
 
 ## Optional integrations
 
-Core extraction and profiling need no model provider. The optional `openai` extra installs the dependency for the explicit OpenAI adapter, and the `ui` extra enables the local Streamlit interface. Network-capable settings and credentials are configured separately; never commit credentials or private project outputs. Live-model quality and scientific correctness are outside the demo's validation.
+Core extraction and profiling need no model provider. The optional `openai` extra installs the dependency for the explicit OpenAI adapter, and the `ui` extra enables the local Streamlit interface. Network-capable settings and credentials are configured separately. Keep credentials and private project outputs outside tracked source.
 
 For an end-to-end example with known content and a checked rerun, use the [synthetic demo](demo.md).

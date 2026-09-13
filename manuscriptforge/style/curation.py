@@ -979,6 +979,10 @@ def _render_style_card(mode: str, section: str, chunks: list[StyleChunk]) -> tup
     corpus_files = sorted({chunk.source_file for chunk in chunks})
     typical_sentence_length = distribution(sentence_lengths)
     typical_paragraph_length = distribution(paragraph_lengths)
+    sentence_mean = typical_sentence_length.get("mean")
+    paragraph_mean = typical_paragraph_length.get("mean")
+    sentence_length_label = "not available (no passages)" if sentence_mean is None else f"{sentence_mean} words on average"
+    paragraph_length_label = "not available (no passages)" if paragraph_mean is None else f"{paragraph_mean} words on average"
     data: dict[str, Any] = {
         "style_mode": mode,
         "section_type": section,
@@ -1011,8 +1015,8 @@ def _render_style_card(mode: str, section: str, chunks: list[StyleChunk]) -> tup
         f"- Passage-count indicator: {data['confidence']}",
         f"- Chunk count: {len(chunks)}",
         f"- Corpus files used: {', '.join(corpus_files) if corpus_files else 'none'}",
-        f"- Typical sentence length: {typical_sentence_length.get('mean')}",
-        f"- Typical paragraph length: {typical_paragraph_length.get('mean')}",
+        f"- Typical sentence length: {sentence_length_label}",
+        f"- Typical paragraph length: {paragraph_length_label}",
         "",
         "## Common Signals",
         f"- Transitions: {', '.join(transitions) if transitions else 'none detected'}",
