@@ -5,6 +5,24 @@ ManuscriptForge turns local writing documents into reviewed passages, descriptiv
 A writing **corpus** is a collection of writing samples. Researchers can use ManuscriptForge to inspect that collection, decide which passages belong in it, and compare descriptive statistics and examples across manuscript sections. The recorded decisions and source links make it possible to see exactly which text contributed to a summary.
 
 [![CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml?query=branch%3Amain)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![Latest release](https://img.shields.io/github/v/release/ericrosenn1/manuscriptforge?display_name=tag&sort=semver)](https://github.com/ericrosenn1/manuscriptforge/releases/latest)
+[![Release date](https://img.shields.io/github/release-date/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/releases/latest)
+
+[![Citation](https://img.shields.io/badge/citation-CITATION.cff-5A5A5A)](CITATION.cff)
+
+[![Last commit](https://img.shields.io/github/last-commit/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/commits/main)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/graphs/commit-activity)
+[![Contributors](https://img.shields.io/github/contributors/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/graphs/contributors)
+[![Open issues](https://img.shields.io/github/issues/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/issues)
+[![Open pull requests](https://img.shields.io/github/issues-pr/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/pulls)
+[![Stars](https://img.shields.io/github/stars/ericrosenn1/manuscriptforge?style=social)](https://github.com/ericrosenn1/manuscriptforge/stargazers)
+[![Forks](https://img.shields.io/github/forks/ericrosenn1/manuscriptforge?style=social)](https://github.com/ericrosenn1/manuscriptforge/forks)
+[![Watchers](https://img.shields.io/github/watchers/ericrosenn1/manuscriptforge?style=social)](https://github.com/ericrosenn1/manuscriptforge/watchers)
+[![Repository size](https://img.shields.io/github/repo-size/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
+[![Code size](https://img.shields.io/github/languages/code-size/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
+[![Top language](https://img.shields.io/github/languages/top/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
+[![Languages](https://img.shields.io/github/languages/count/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
 
 ## Quick start
 

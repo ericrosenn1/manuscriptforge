@@ -15,4 +15,5 @@ outputs/
 demo-output/
 local/
 .coverage
+coverage.xml
 htmlcov/

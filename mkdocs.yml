@@ -1,0 +1,15 @@
+site_name: ManuscriptForge
+site_description: Local writing-corpus analysis with traceable reports.
+site_url: https://ericrosenn1.github.io/manuscriptforge/
+repo_url: https://github.com/ericrosenn1/manuscriptforge
+repo_name: ericrosenn1/manuscriptforge
+docs_dir: build/site-source
+site_dir: build/site
+theme:
+  name: readthedocs
+nav:
+  - Overview: index.md
+  - Demo walkthrough: docs/demo.md
+  - Usage: docs/usage.md
+  - Architecture: docs/architecture.md
+  - Development: docs/development.md
