@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "manuscriptforge"
-version = "0.1.0"
-description = "Local writing-corpus analysis, curated style profiles, and traceable manuscript workflows."
+version = "0.2.0"
+description = "Evidence-grounded research workflows, source-only model evaluation, and reproducible manuscript tooling."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 authors = [{ name = "Eric H. Rosenn" }]
@@ -23,8 +23,10 @@ dependencies = [
   "bibtexparser>=1.4,<2",
   "jinja2>=3.1",
   "openpyxl>=3.1",
+  "numpy>=1.24,<3",
   "pandas>=2.0",
   "pydantic>=2.6",
+  "psutil>=6.1,<8",
   "pypdf>=4.0",
   "python-docx>=1.1",
   "pyyaml>=6.0",
@@ -42,7 +44,7 @@ dev = [
   "cffconvert>=2.0",
 ]
 docs = ["mkdocs>=1.6"]
-openai = ["openai>=1.40"]
+openai = ["openai>=2.0,<4"]
 ui = ["streamlit>=1.35"]
 
 [project.urls]
@@ -56,7 +58,7 @@ manuscriptforge = "manuscriptforge.cli:app"
 packages = ["manuscriptforge"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/CITATION.cff", "/.gitignore", "/.gitattributes"]
+include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/CITATION.cff", "/.gitignore", "/.gitattributes", "/.env.example"]
 
 [tool.ruff]
 line-length = 100

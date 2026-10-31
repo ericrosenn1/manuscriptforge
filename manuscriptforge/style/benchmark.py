@@ -205,10 +205,7 @@ def _latest_file(project_dir: Path, filename: str, preferred_run: Path) -> Path 
     preferred = preferred_run / filename
     if preferred.exists():
         return preferred
-    for run_dir in reversed(sorted((project_dir / "outputs" / "runs").glob("*"))):
-        candidate = run_dir / filename
-        if candidate.exists():
-            return candidate
+    # Bind evaluation to its run snapshot, never to future or mutable artifacts.
     return None
 
 
@@ -242,7 +239,7 @@ def _load_manuscript(run_dir: Path) -> tuple[str, dict[str, str]]:
 
 
 def _load_style_memory(project_dir: Path, run_dir: Path) -> dict[str, Any]:
-    for path in [run_dir / "style_memory.json", project_dir / "style_memory.json"]:
+    for path in [run_dir / "style_memory.json"]:
         if path.exists():
             loaded = read_json(path)
             return loaded if isinstance(loaded, dict) else {}
@@ -258,7 +255,6 @@ def _input_hashes(project_dir: Path, run_dir: Path) -> dict[str, str]:
         run_dir / "style_memory.json",
         run_dir / "source_map.json",
         run_dir / "style_report.json",
-        project_dir / "style_memory.json",
         project_dir / "project.yaml",
     ]
     for filename in [
@@ -352,6 +348,10 @@ def _section_metric(
             components.append(passive_score)
             evidence["passive_voice_similarity"] = passive_score
     generic_matches = _phrase_counts(section_text, GENERIC_LLM_PHRASES)
+    if not components:
+        return _metric(f"{section_type}_style_score", section_type=section_type,
+                       score=None, status="insufficient_data",
+                       explanation="No measured style targets exist; phrase absence alone is not similarity.")
     generic_score = _clamp(1.0 - sum(generic_matches.values()) / 4.0)
     components.append(round(generic_score, 4))
     evidence["generic_phrase_matches"] = generic_matches
@@ -605,7 +605,8 @@ def _style_memory_metric(full_text: str, style_memory: dict[str, Any]) -> StyleB
     lower = full_text.lower()
     disliked = [str(item) for item in style_memory.get("disliked_phrases", []) if str(item).strip()]
     disliked_matches = [phrase for phrase in disliked if phrase.lower() in lower]
-    components.append(_clamp(1.0 - len(disliked_matches) / max(len(disliked), 1)))
+    if disliked:
+        components.append(_clamp(1.0 - len(disliked_matches) / len(disliked)))
     hedge = str(style_memory.get("preferred_hedge_level", "corpus_default"))
     if hedge and hedge != "corpus_default":
         components.append(1.0 if hedge.lower() in lower else 0.35)
@@ -616,12 +617,12 @@ def _style_memory_metric(full_text: str, style_memory: dict[str, Any]) -> StyleB
     if citation_pref and citation_pref != "unknown":
         observed = _citation_style(full_text)
         components.append(1.0 if citation_pref in observed or observed in citation_pref else 0.6)
-    score = _average(components) if components else 0.75
+    score = _average(components)
     return _metric(
         "style_memory_alignment_score",
         section_type=None,
         score=score,
-        status="warning" if disliked_matches else "scored",
+        status="insufficient_data" if score is None else "warning" if disliked_matches else "scored",
         explanation="Generated text compared with stored style preferences.",
         evidence={
             "answered_preferences": style_memory.get("answered_preferences", 0),
@@ -672,16 +673,20 @@ def _traceability_metrics(source_map: dict[str, Any]) -> list[StyleBenchmarkMetr
             "style_exemplar_usage_score",
             section_type=None,
             score=round(exemplar_score, 4),
-            explanation="Share of sections with style chunk IDs recorded in source_map.json.",
-            evidence={"sections": section_count, "sections_with_style_chunk_ids": sections_with_style},
+            status="warning",
+            explanation="Recorded style-ID presence only; IDs and actual exemplar use are not verified.",
+            evidence={"sections": section_count, "sections_with_style_chunk_ids": sections_with_style,
+                      "ids_verified": False},
             suggested_fix="Ensure section drafting retrieves and records style exemplars." if exemplar_score < 0.75 else None,
         ),
         _metric(
             "source_map_traceability_completeness",
             section_type=None,
             score=round(completeness, 4),
-            explanation="Completeness of expected paragraph-level traceability fields in source_map.json.",
-            evidence={"fields_present": present, "fields_expected": total},
+            status="warning",
+            explanation="Field-presence completeness only; referential integrity and semantic support are not measured.",
+            evidence={"fields_present": present, "fields_expected": total,
+                      "referential_integrity_checked": False, "semantic_support_checked": False},
             suggested_fix="Regenerate source_map.json with claim, citation, style, unresolved, and provider fields." if completeness < 1.0 else None,
         ),
     ]
@@ -705,17 +710,19 @@ def _score_style_eval(project_dir: Path, run_dir: Path, sections: dict[str, str]
     files = _eval_files(project_dir, run_dir)
     for row in _read_jsonl(files.get("pairs", Path("__missing__"))):
         section_type = normalize_section_type(str(row.get("section_type", "unknown")))
-        target_text = sections.get(section_type, full_text)
+        target_text = sections.get(section_type, "")
         positive_score = _token_similarity(target_text, str(row.get("positive", "")))
         negative_score = _token_similarity(target_text, str(row.get("negative", "")))
-        score = _clamp(0.5 + positive_score - negative_score)
+        score = (_clamp(0.5 + positive_score - negative_score)
+                 if target_text.strip() and positive_score != negative_score else None)
         eval_results.append(
             StyleEvalResult(
                 eval_id=str(row.get("example_id", stable_id("seval", json.dumps(row, sort_keys=True)))),
                 eval_type=str(row.get("task", "pair_similarity")),
                 section_type=section_type,
-                score=round(score, 4),
-                passed=positive_score >= negative_score,
+                score=round(score, 4) if score is not None else None,
+                passed=score is not None and positive_score > negative_score,
+                status="inconclusive" if score is None else "diagnostic",
                 explanation="Generated text was compared with positive user-style text and deterministic distractor text.",
                 feature_target="sentence_similarity",
                 source_chunk_id=row.get("source_chunk_id"),
@@ -723,17 +730,19 @@ def _score_style_eval(project_dir: Path, run_dir: Path, sections: dict[str, str]
         )
     for row in _read_jsonl(files.get("rewrites", Path("__missing__"))):
         section_type = normalize_section_type(str(row.get("section_type", "unknown")))
-        target_text = sections.get(section_type, full_text)
+        target_text = sections.get(section_type, "")
         user_score = _token_similarity(target_text, str(row.get("target_user_paragraph", "")))
         neutral_score = _token_similarity(target_text, str(row.get("neutral_paragraph", "")))
-        score = _clamp(0.5 + user_score - neutral_score)
+        score = (_clamp(0.5 + user_score - neutral_score)
+                 if target_text.strip() and user_score != neutral_score else None)
         eval_results.append(
             StyleEvalResult(
                 eval_id=str(row.get("example_id", stable_id("seval", json.dumps(row, sort_keys=True)))),
                 eval_type=str(row.get("task", "rewrite_similarity")),
                 section_type=section_type,
-                score=round(score, 4),
-                passed=user_score >= neutral_score,
+                score=round(score, 4) if score is not None else None,
+                passed=score is not None and user_score > neutral_score,
+                status="inconclusive" if score is None else "diagnostic",
                 explanation="Generated section text was compared with user paragraph and neutral rewrite.",
                 feature_target="paragraph_similarity",
                 source_chunk_id=row.get("source_chunk_id"),
@@ -741,27 +750,34 @@ def _score_style_eval(project_dir: Path, run_dir: Path, sections: dict[str, str]
         )
     for row in _read_jsonl(files.get("ranks", Path("__missing__"))):
         section_type = normalize_section_type(str(row.get("section_type", "unknown")))
-        target_text = sections.get(section_type, full_text)
+        target_text = sections.get(section_type, "")
         if row.get("task") == "section_classification":
-            score = 1.0 if target_text.strip() and _token_similarity(target_text, str(row.get("text", ""))) > 0 else 0.0
-            passed = bool(target_text.strip())
+            similarities = {name: _token_similarity(text, str(row.get("text", "")))
+                            for name, text in sections.items() if text.strip()}
+            highest = max(similarities.values(), default=0.0)
+            winners = [name for name, value in similarities.items() if value == highest]
+            score = float(winners[0] == section_type) if highest > 0 and len(winners) == 1 else None
+            passed = score == 1.0
             feature_target = "section_classification"
         else:
             options = [str(option) for option in row.get("options", [])]
             preferred = int(row.get("preferred_option_index", 0))
             option_scores = [_token_similarity(target_text, option) for option in options]
             best_index = max(range(len(option_scores)), key=option_scores.__getitem__) if option_scores else -1
-            score = option_scores[preferred] if 0 <= preferred < len(option_scores) else 0.0
-            passed = best_index == preferred
+            highest = max(option_scores, default=0.0)
+            unique_match = highest > 0 and option_scores.count(highest) == 1
+            score = option_scores[preferred] if unique_match and 0 <= preferred < len(option_scores) else None
+            passed = score is not None and best_index == preferred
             feature_target = "ranked_style_preference"
         eval_results.append(
             StyleEvalResult(
                 eval_id=str(row.get("example_id", stable_id("seval", json.dumps(row, sort_keys=True)))),
                 eval_type=str(row.get("task", "rank_question")),
                 section_type=section_type,
-                score=round(score, 4),
+                score=round(score, 4) if score is not None else None,
                 passed=passed,
-                explanation="Style eval rank/classification item was scored with deterministic token overlap.",
+                status="inconclusive" if score is None else "diagnostic",
+                explanation="Legacy text-overlap alignment diagnostic, not a held-out style classifier or author-preference validation.",
                 feature_target=feature_target,
                 source_chunk_id=row.get("source_chunk_id"),
             )
@@ -830,7 +846,9 @@ def _category_scores(metrics: list[StyleBenchmarkMetric], warnings: list[str]) -
     return categories
 
 
-def _overall_score(categories: dict[str, float | None], weights: dict[str, float]) -> float:
+def _overall_score(categories: dict[str, float | None], weights: dict[str, float]) -> float | None:
+    if categories.get("section_similarity") is None:
+        return None
     numerator = 0.0
     denominator = 0.0
     for key, weight in weights.items():
@@ -840,7 +858,7 @@ def _overall_score(categories: dict[str, float | None], weights: dict[str, float
         numerator += value * weight
         denominator += weight
     if denominator <= 0:
-        return 0.0
+        return None
     return round(100 * numerator / denominator, 2)
 
 
@@ -922,7 +940,8 @@ def _comparison(primary: StyleBenchmarkReport, baseline: StyleBenchmarkReport, p
         recommendations.append("Use the weakest current section score to choose the next style question.")
     return {
         "compared_run_id": baseline.run_id,
-        "overall_score_change": round(primary.overall_score - baseline.overall_score, 2),
+        "overall_score_change": (round(primary.overall_score - baseline.overall_score, 2)
+                                 if primary.overall_score is not None and baseline.overall_score is not None else None),
         "section_score_changes": section_changes,
         "generic_phrase_count_change": int(primary_generic) - int(baseline_generic),
         "overclaiming_style_warning_change": _audit_warning_count(primary_run) - _audit_warning_count(baseline_run),
@@ -1000,12 +1019,14 @@ def build_style_benchmark_report(
         metric.active_style_mode = active_style_mode
     eval_results = _score_style_eval(project_dir, run_dir, sections, full_text)
     categories = _category_scores(metrics, warnings)
-    overall = _overall_score(categories, weights)
+    overall = _overall_score(categories, weights) if full_text.strip() else None
+    warnings.append("Legacy heuristic diagnostic only: not held-out author-style or scientific validation.")
     report = StyleBenchmarkReport(
         run_id=run_dir.name,
         compared_run_id=compare_run_dir.name if compare_run_dir else None,
         active_style_mode=active_style_mode,
         overall_score=overall,
+        qualification_status="inconclusive" if overall is None else "diagnostic_only",
         section_scores=_section_scores(metrics),
         metric_scores=metrics,
         eval_results=eval_results,
@@ -1019,7 +1040,9 @@ def build_style_benchmark_report(
     return report, weights
 
 
-def _score_interpretation(score: float) -> str:
+def _score_interpretation(score: float | None) -> str:
+    if score is None:
+        return "inconclusive: insufficient measured style evidence"
     if score >= 85:
         return "high heuristic similarity across the measured indicators"
     if score >= 70:
@@ -1037,6 +1060,7 @@ def render_style_benchmark_markdown(report: StyleBenchmarkReport) -> str:
         f"- Compared run: {report.compared_run_id or 'none'}",
         f"- Active style mode: {report.active_style_mode}",
         f"- Overall score: {report.overall_score}/100",
+        f"- Qualification: {report.qualification_status} (schema {report.schema_version})",
         f"- Heuristic score band: {_score_interpretation(report.overall_score)}",
         "- This score summarizes rule-based indicators; it does not validate writing quality, author preference, or scientific content.",
         "",
@@ -1050,7 +1074,7 @@ def render_style_benchmark_markdown(report: StyleBenchmarkReport) -> str:
 
     scored_metrics = [metric for metric in report.metric_scores if metric.normalized_score is not None]
     strongest = sorted(scored_metrics, key=lambda item: item.normalized_score or 0, reverse=True)[:5]
-    weakest = sorted(scored_metrics, key=lambda item: item.normalized_score or 1)[:5]
+    weakest = sorted(scored_metrics, key=lambda item: item.normalized_score if item.normalized_score is not None else 1)[:5]
     lines.extend(["", "## Strongest Matches"])
     lines.extend(f"- {metric.metric_name}: {round((metric.normalized_score or 0) * 100, 1)}%" for metric in strongest)
     lines.extend(["", "## Weakest Matches"])

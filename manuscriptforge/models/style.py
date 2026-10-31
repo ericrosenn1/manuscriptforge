@@ -100,6 +100,7 @@ class StyleDocumentExtraction(BaseModel):
     style_mode: str = StyleMode.unknown.value
     extraction_status: ExtractionStatus
     extracted_text_path: str | None = None
+    extracted_text_hash: str | None = None
     extracted_char_count: int = 0
     extracted_word_count: int = 0
     page_count: int | None = None
@@ -157,8 +158,9 @@ class StyleEvalResult(BaseModel):
     eval_id: str
     eval_type: str
     section_type: str
-    score: float
+    score: float | None
     passed: bool
+    status: Literal["diagnostic", "inconclusive"] = "diagnostic"
     explanation: str
     feature_target: str
     source_chunk_id: str | None = None
@@ -179,10 +181,12 @@ class StyleBenchmarkMetric(BaseModel):
 
 
 class StyleBenchmarkReport(BaseModel):
+    schema_version: str = "2.0"
     run_id: str
     compared_run_id: str | None = None
     active_style_mode: str = StyleMode.unknown.value
-    overall_score: float
+    overall_score: float | None
+    qualification_status: Literal["diagnostic_only", "inconclusive"] = "diagnostic_only"
     section_scores: dict[str, Any] = Field(default_factory=dict)
     metric_scores: list[StyleBenchmarkMetric] = Field(default_factory=list)
     eval_results: list[StyleEvalResult] = Field(default_factory=list)

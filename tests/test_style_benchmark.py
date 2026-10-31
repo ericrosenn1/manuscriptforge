@@ -150,4 +150,5 @@ def test_style_benchmark_initialized_empty_project_runs_without_api(tmp_path: Pa
     run_dir = run_draft(project_dir)
     run_style_benchmark(project_dir)
     scores = read_json(run_dir / "style_benchmark_scores.json")
-    assert scores["overall_score"] >= 0
+    assert scores["overall_score"] is None
+    assert scores["qualification_status"] == "inconclusive"

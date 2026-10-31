@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import random
 from pathlib import Path
 from typing import Any
 
 from manuscriptforge.ingest.style_ingest import build_style_chunks
 from manuscriptforge.style.curation import apply_chunk_curation_to_profile_chunks
+from manuscriptforge.utils.hashing import sha256_text
 from manuscriptforge.utils.ids import stable_id
-from manuscriptforge.utils.io import write_jsonl
+from manuscriptforge.utils.io import write_json, write_jsonl
 from manuscriptforge.utils.text import split_paragraphs, split_sentences
 
 
@@ -53,6 +55,8 @@ def build_style_evaluation_set(project_dir: Path, run_dir: Path) -> dict[str, in
         paragraphs = split_paragraphs(chunk.text)
         if sentences:
             sentence = sentences[0]
+            options = _rank_options(sentence, chunk.section_type)
+            random.Random(int(sha256_text(chunk.chunk_id)[:16], 16)).shuffle(options)
             pair_rows.append(
                 {
                     "example_id": stable_id("seval_pair", f"{chunk.chunk_id}:{sentence}"),
@@ -72,8 +76,8 @@ def build_style_evaluation_set(project_dir: Path, run_dir: Path) -> dict[str, in
                     "section_type": chunk.section_type,
                     "style_mode": chunk.style_mode,
                     "source_chunk_id": chunk.chunk_id,
-                    "options": _rank_options(sentence, chunk.section_type),
-                    "preferred_option_index": 0,
+                    "options": options,
+                    "preferred_option_index": options.index(sentence),
                     "private_writing": True,
                 }
             )
@@ -120,6 +124,16 @@ def build_style_evaluation_set(project_dir: Path, run_dir: Path) -> dict[str, in
     write_jsonl(run_dir / "style_eval_pairs.jsonl", pair_rows)
     write_jsonl(run_dir / "style_eval_rewrite_prompts.jsonl", rewrite_rows)
     write_jsonl(run_dir / "style_eval_rank_questions.jsonl", rank_rows)
+    write_json(run_dir / "style_eval_manifest.json", {
+        "schema_version": "2.0", "qualification": "diagnostic_only", "held_out": False,
+        "limitations": [
+            "These source-derived examples may overlap style profiling and retrieval inputs.",
+            "Generic distractors alter content; overlap is not a pure measure of author style.",
+            "Use the separate evaluation package for grouped held-out functional tests.",
+        ],
+        "source_chunks": [{"chunk_id": chunk.chunk_id, "source_file": chunk.source_file,
+                           "content_hash": chunk.content_hash} for chunk in chunks],
+    })
     return {
         "style_eval_pairs": len(pair_rows),
         "style_eval_rewrite_prompts": len(rewrite_rows),

@@ -14,6 +14,7 @@ def rewritten(text: str, *, page: str) -> str:
         return (
             text.replace("](pyproject.toml)", f"]({GITHUB_BLOB}pyproject.toml)")
             .replace("](CITATION.cff)", f"]({GITHUB_BLOB}CITATION.cff)")
+            .replace("](scripts/", f"]({GITHUB_BLOB}scripts/")
         )
     return (
         text.replace("](../manuscriptforge/", f"]({GITHUB_BLOB}manuscriptforge/")

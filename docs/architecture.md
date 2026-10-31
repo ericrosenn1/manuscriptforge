@@ -11,6 +11,23 @@ ManuscriptForge keeps source documents, extracted representations, review decisi
 | [style/profiler.py](../manuscriptforge/style/profiler.py), [style/features.py](../manuscriptforge/style/features.py) | Calculate descriptive features on selected chunks | Global and section profiles, chunk index, style guide |
 | [demo.py](../manuscriptforge/demo.py) | Supply original synthetic inputs and check the public workflow's outputs | Demo report, portable summary, integrity manifest |
 
+## Research execution
+
+The `research` command family adds a trusted, resumable manuscript DAG. It does not accept executable steps from project documents. The orchestration layer persists run state and verifies input, parameter, implementation, and dependency fingerprints before reusing a completed stage.
+
+| Package | Role |
+| --- | --- |
+| `orchestration` | Static node contracts, isolated workers, durable scheduling, immutable snapshots, verified reuse, timeouts, cancellation, and final manifests |
+| `research` | Project-specific DAG, provider settings, trusted stage handlers, CLI, and verified bundle assembly |
+| `llm` | Typed provider boundary, explicit model requests, conservative budget accounting, and structured grounding checks |
+| `retrieval` | Immutable lexical records, BM25/Jaccard scoring, filters, optional diversity selection, and index validation |
+| `learning` | Explicit labeled preference pairs, grouped splits, train-only scaling, logistic fitting, and JSON model artifacts |
+| `evaluation` | Versioned source/fact/case contracts, withheld labels, grouped leakage checks, separate functional metrics, and immutable evaluation reports |
+
+Node workspaces are separate from source snapshots. The final bundle contains the selected source material, stage artifacts, manuscript formats, audit findings, and checksums. Computational success publishes an immutable latest pointer; it does not imply scientific approval. See [Research workflow](research-workflow.md).
+
+Provider outputs remain candidates. Identifier and numeric checks establish specified forms of consistency, not unrestricted semantic entailment. The [evaluation protocol](evaluation.md) and [learning model notes](learning.md) describe the measured scope.
+
 ## Browser studio
 
 The browser application under `web/` is a separate React and TypeScript client built with Vite. It adds an interactive workflow while preserving the Python toolkit and its file-based APIs. The client does not call a Python service or invoke a model provider.
@@ -42,6 +59,8 @@ Markdown and text extraction read local text. DOCX extraction reads paragraphs a
 Heading recognition, sentence splitting, hedging terms, passive-voice estimates, noun-phrase patterns, and citation patterns use rules. They describe a chosen corpus and may misclassify unfamiliar structures. The software does not infer that a style sample provides evidence for a scientific claim.
 
 ## Experimental manuscript path
+
+The original `draft` workflow below is retained separately from the newer `research` DAG and structured model boundary.
 
 Other retained modules provide project/table/source ingestion, claim extraction and citation mapping, section drafting, audits, reviewer-style checks, feedback capture, and exports. `pipeline/workflow.py` coordinates these actions when explicitly invoked. `llm/mock_provider.py` supplies deterministic test behavior, while `llm/openai_provider.py` is an optional network-capable adapter.
 

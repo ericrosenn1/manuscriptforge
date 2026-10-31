@@ -31,8 +31,8 @@ jobs:
       - run: python -m ruff check .
       - run: python -m mypy manuscriptforge
       - run: python -m build
-      - run: python scripts/check_installed.py dist/manuscriptforge-0.1.0-py3-none-any.whl
-      - run: python scripts/check_installed.py dist/manuscriptforge-0.1.0.tar.gz
+      - run: python scripts/check_installed.py dist/manuscriptforge-0.2.0-py3-none-any.whl
+      - run: python scripts/check_installed.py dist/manuscriptforge-0.2.0.tar.gz
       - run: cffconvert --validate --infile CITATION.cff
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python == '3.11'

@@ -5,7 +5,7 @@ title: ManuscriptForge
 authors:
   - family-names: Rosenn
     given-names: Eric H.
-version: "0.1.0"
-date-released: 2026-09-13
+version: "0.2.0"
+date-released: 2026-10-31
 repository-code: "https://github.com/ericrosenn1/manuscriptforge"
-abstract: "Local writing-corpus extraction, passage curation, descriptive style profiles, and reports linked to source documents."
+abstract: "Evidence-grounded research workflows with resumable execution, source-only model evaluation, descriptive style analysis, and provenance-preserving manuscript exports."

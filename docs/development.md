@@ -17,6 +17,43 @@ The public suite uses original synthetic fixtures and temporary directories. It 
 
 The demo tests check seven chunks from three formats, one explicit duplicate exclusion, six approved section passages, reference exclusion, profile/source relationships, and deterministic summaries across different output directories. They also verify that a repeated run changes no file or modification time and rejects altered or unrelated output without overwriting it.
 
+## Research engine checks
+
+The Python suite includes orchestration failure/recovery, snapshot and cache integrity, grounded output rejection, numeric and citation consistency, grouped evaluation leakage, and learned preference-model serialization. Model/provider tests use explicit replay fixtures; paid APIs are not required for the suite.
+
+To reproduce the selected adversarial invariants against any source checkout:
+
+```bash
+python scripts/benchmark_invariants.py probe --source-root . --output local/candidate-invariants.json
+python scripts/benchmark_invariants.py probe --source-root ../baseline-checkout --revision fbd7b17397b3947298f1b1191e2a607c3c7127f7 --output local/baseline-invariants.json
+python scripts/benchmark_invariants.py compare --baseline local/baseline-invariants.json --candidate local/candidate-invariants.json --output local/invariant-comparison.json
+```
+
+Prepare the baseline checkout from the named commit before running it. The script verifies which source tree it imports and records source-file and script hashes. It refuses to overwrite existing reports. Eleven cases have predeclared functional invariants; a separate source-map probe documents the limits of field-presence scoring. These are targeted regressions, not estimates of general model reliability.
+
+The local performance scripts use original synthetic inputs and make no model calls:
+
+```bash
+python scripts/benchmark_workflow.py --output local/workflow-timing --workers 1 2 4 --repetitions 2
+python scripts/benchmark_retrieval.py --output local/retrieval-timing.json --records 10000 --queries 30
+```
+
+Choose new output paths. The workflow benchmark records cold and verified-cache runs, machine information and implementation hashes. The retrieval benchmark checks exact legacy-Jaccard top-10 parity and times the indexed alternatives. Two repetitions and a single synthetic workload support a local observation, not a universal performance claim. The [release notes](release-0.2.0.md) identify the implementation snapshot for reported measurements.
+
+Run synthetic preference learning through the [Python API](learning.md). Tests verify that changing test labels or features cannot change fitted coefficients, scales, or the selected stopping iteration. The report distinguishes author-heldout evaluation from same-author document holdout.
+
+Browser checks remain separate:
+
+```bash
+npm ci --prefix web
+npm run format:check --prefix web
+npm test --prefix web
+npm run build --prefix web
+npm run test:e2e --prefix web
+```
+
+Playwright runs the production build on an isolated local port. A successful browser suite does not qualify the Python research engine or model outputs.
+
 ## Package checks
 
 An editable installation alone can hide missing package resources. Build the wheel and source distribution, inspect their contents, and install the wheel into another environment. Run the installed CLI from outside the checkout:

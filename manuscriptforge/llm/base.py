@@ -11,6 +11,17 @@ T = TypeVar("T", bound=BaseModel)
 class LLMProviderError(RuntimeError):
     """Raised when an LLM provider cannot satisfy a request."""
 
+    def __init__(
+        self, message: str, *, code: str = "provider_error", retryable: bool = False
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.retryable = retryable
+
+
+class LLMResponseError(LLMProviderError):
+    """A completed provider operation returned unusable or refused content."""
+
 
 class LLMProvider(ABC):
     name: str = "base"
@@ -33,4 +44,4 @@ class LLMProvider(ABC):
 
     def rank_options(self, prompt: str, options: list[str]) -> list[str]:
         del prompt
-        return options
+        return list(options)

@@ -124,15 +124,24 @@ def _input_hashes(ingested: dict[str, Any]) -> dict[str, str]:
 
 def _project_file_hashes(project_dir: Path) -> dict[str, str]:
     hashes: dict[str, str] = {}
-    for folder_name in ["inputs", "style_corpus"]:
+    for folder_name in ["inputs", "style_corpus", "feedback", "planning/intake/extracted_style_text"]:
         folder = project_dir / folder_name
         if not folder.exists():
             continue
         for path in sorted(p for p in folder.rglob("*") if p.is_file()):
             hashes[path.relative_to(project_dir).as_posix()] = sha256_file(path)
-    config_path = project_dir / "project.yaml"
-    if config_path.exists():
-        hashes["project.yaml"] = sha256_file(config_path)
+    authority_files = [
+        "project.yaml", "style_memory.json", "style_preferences.jsonl", "style_feedback.jsonl",
+        "accepted_rewrites.jsonl", "planning/intake/data_assets.jsonl",
+        "planning/intake/writing_samples_registry.csv", "planning/intake/result_tables_registry.csv",
+        "planning/intake/sources_registry.csv", "planning/intake/intake_decisions.jsonl",
+        "planning/intake/style_chunks/style_chunks_registry.jsonl",
+        "planning/intake/style_chunks/style_chunks_registry.csv",
+    ]
+    for name in authority_files:
+        path = project_dir / name
+        if path.is_file():
+            hashes[name] = sha256_file(path)
     return hashes
 
 
@@ -149,7 +158,8 @@ def _metadata_cache_hashes(project_dir: Path, config) -> dict[str, str]:
 
 def _run_file_hashes(run_dir: Path) -> dict[str, str]:
     hashes: dict[str, str] = {}
-    for path in sorted(p for p in run_dir.rglob("*") if p.is_file() and p.name != "run_manifest.json"):
+    for path in sorted(p for p in run_dir.rglob("*") if p.is_file()
+                       and p != run_dir / "run_manifest.json" and p.suffix.lower() != ".zip"):
         hashes[path.relative_to(run_dir).as_posix()] = sha256_file(path)
     return hashes
 
@@ -184,24 +194,45 @@ def write_manifest(
     ingested: dict[str, Any] | None = None,
     extra: dict[str, Any] | None = None,
 ) -> None:
-    files = sorted(
-        path.relative_to(run_dir).as_posix()
-        for path in run_dir.rglob("*")
-        if path.is_file() and path.name != "run_manifest.json"
-    )
+    previous_path = run_dir / "run_manifest.json"
+    previous = read_json(previous_path) if previous_path.is_file() else {}
+    if not isinstance(previous, dict):
+        raise ValueError("Existing run manifest must be a JSON object")
+    completed = utc_iso()
+    current_project_hashes = _project_file_hashes(project_dir)
+    input_hashes = current_project_hashes | _input_hashes(ingested or {})
+    if previous and ingested is None:
+        input_hashes = previous.get("input_hashes", input_hashes)
+    output_hashes = _run_file_hashes(run_dir)
+    history = list(previous.get("operation_history", []))
+    if previous and not history:
+        history.append({"command": previous.get("command"), "completed_utc": previous.get("completed_utc"),
+                        "config_hash": previous.get("config_hash"), "output_hashes": previous.get("output_hashes", {})})
+    history.append({"command": command, "completed_utc": completed,
+                    "config_hash": sha256_text(config.model_dump_json()), "output_hashes": output_hashes})
     manifest = {
         "command": command,
-        "created_utc": utc_iso(),
-        "completed_utc": utc_iso(),
+        "initial_command": previous.get("initial_command", previous.get("command", command)),
+        "created_utc": previous.get("created_utc", completed),
+        "completed_utc": completed,
         "project_dir": str(project_dir),
         "run_dir": str(run_dir),
         "config": config.model_dump(mode="json"),
         "config_hash": sha256_text(config.model_dump_json()),
-        "input_hashes": _project_file_hashes(project_dir) | _input_hashes(ingested or {}),
+        "input_hashes": input_hashes,
+        "current_project_file_hashes": current_project_hashes,
+        "initial_config": previous.get("initial_config", previous.get("config", config.model_dump(mode="json"))),
         "metadata_cache_hashes": _metadata_cache_hashes(project_dir, config),
-        "output_hashes": _run_file_hashes(run_dir),
+        "output_hashes": output_hashes,
         "software_versions": _software_versions(),
-        "files": files,
+        "files": sorted(output_hashes),
+        "operation_history": history,
+        "hash_policy": {
+            "algorithm": "SHA-256", "bytes": "raw file bytes",
+            "excluded_outputs": ["run_manifest.json", "*.zip"],
+            "reason": "A manifest and archives containing it cannot hash themselves without recursion.",
+            "input_note": "Same-run audit/export preserve original input_hashes; current_project_file_hashes records current context.",
+        },
         "extra": extra or {},
     }
     write_json(run_dir / "run_manifest.json", manifest)
@@ -490,7 +521,6 @@ def run_draft(project_dir: Path) -> Path:
     write_reviewer_critique(run_dir / "reviewer_critique.md", critique)
     revision_records = generate_revision_question_records(claims, findings)
     write_revision_question_artifacts(run_dir, revision_records)
-    export_bundle(run_dir)
     write_manifest(
         project_dir,
         run_dir,
@@ -507,6 +537,7 @@ def run_draft(project_dir: Path) -> Path:
             "active_style_mode": config.style.active_mode,
         },
     )
+    export_bundle(run_dir)
     update_latest_copy(project_dir, run_dir)
     return run_dir
 
@@ -559,12 +590,14 @@ def run_audit(project_dir: Path) -> Path:
     critique = simulate_reviewer(manuscript, findings)
     write_reviewer_critique(run_dir / "reviewer_critique.md", critique)
     write_manifest(project_dir, run_dir, "audit", config, extra={"finding_count": len(findings)})
+    export_bundle(run_dir)
     update_latest_copy(project_dir, run_dir)
     return run_dir
 
 
 def run_reviewer_sim(project_dir: Path) -> Path:
     project_dir = Path(project_dir)
+    config = load_project_config(project_dir)
     run_dir, manuscript, claims, citations, style_profile, ingested = _load_latest_artifacts(project_dir)
     provider_name = str(manuscript.metadata.get("provider", "unknown"))
     findings = _audit_and_write(
@@ -579,6 +612,8 @@ def run_reviewer_sim(project_dir: Path) -> Path:
     )
     critique = simulate_reviewer(manuscript, findings)
     write_reviewer_critique(run_dir / "reviewer_critique.md", critique)
+    write_manifest(project_dir, run_dir, "reviewer-sim", config, extra={"finding_count": len(findings)})
+    export_bundle(run_dir)
     update_latest_copy(project_dir, run_dir)
     return run_dir
 
@@ -767,8 +802,8 @@ def run_export(project_dir: Path) -> Path:
     export_markdown(run_dir / "manuscript.md", manuscript)
     export_docx(run_dir / "manuscript.docx", manuscript)
     export_latex(run_dir / "manuscript.tex", manuscript)
-    export_bundle(run_dir)
     write_manifest(project_dir, run_dir, "export", config)
+    export_bundle(run_dir)
     update_latest_copy(project_dir, run_dir)
     return run_dir
 
