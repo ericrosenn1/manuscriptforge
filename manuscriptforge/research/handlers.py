@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ from manuscriptforge.llm.grounded import (
     request_from_context,
     validate_grounded_response,
 )
+from manuscriptforge.llm.response_capture import ResponseCapture
 from manuscriptforge.models.citation import CitationRecord
 from manuscriptforge.models.claim import ScientificClaim
 from manuscriptforge.models.manuscript import Manuscript, ManuscriptSection
@@ -28,6 +30,7 @@ from manuscriptforge.orchestration import WorkerContext
 from manuscriptforge.orchestration.models import relative_path
 from manuscriptforge.orchestration.storage import is_link
 from manuscriptforge.pipeline.run_context import ManuscriptContext
+from manuscriptforge.research.claim_reviews import apply_claim_reviews, load_claim_reviews
 from manuscriptforge.research.providers import research_provider
 from manuscriptforge.research.settings import ResearchSettings
 from manuscriptforge.style.profiler import build_style_profile
@@ -120,9 +123,22 @@ def claims_node(context: WorkerContext) -> dict[str, Any]:
     project = _project_copy(context)
     data = read_json(context.dependency_path("ingest", "intermediate/ingested_project.json"))
     claims = build_claim_registry(project, context.work_dir, data)
+    write_json(context.output_path("claim_registry_unreviewed.json"), claims)
+    review_path = context.project_dir / "claim_reviews.jsonl"
+    reviews = load_claim_reviews(review_path) if review_path.exists() else []
+    claims, review_report = apply_claim_reviews(
+        claims, reviews, allowed_sections=load_project_config(project).manuscript.include_sections
+    )
+    write_json(context.output_path("claim_registry.json"), claims)
+    write_json(context.output_path("intermediate/claim_registry.json"), claims)
+    write_json(context.output_path("claim_review_audit.json"), review_report)
+    from manuscriptforge.export.excel_reporter import write_claim_registry_xlsx
+
+    write_claim_registry_xlsx(context.output_path("claim_registry.xlsx"), claims)
     return {
         "claim_count": len(claims),
         "requires_review": sum(claim.needs_human_review for claim in claims),
+        "approved_reviews": review_report.approved,
     }
 
 
@@ -161,7 +177,37 @@ def section_node(context: WorkerContext) -> dict[str, Any]:
             claim.model_copy(update={"section_target": section_name}) for claim in loaded.claims
         ]
     request = request_from_context(loaded, section_name, max_words=settings.max_words_per_section)
-    response = draft_grounded_section(request, loaded.provider)
+    write_json(context.output_path("request.json"), request)
+    capture = getattr(loaded.provider, "response_capture", None)
+    if isinstance(capture, ResponseCapture):
+        # Failed candidates must remain inspectable; successful prose already
+        # has its typed candidate artifact. Credentials/headers are not captured.
+        capture.enabled = True
+        capture.clear()
+    try:
+        response = draft_grounded_section(request, loaded.provider)
+    except Exception as error:
+        message = str(error)
+        secret = os.environ.get("OPENAI_API_KEY")
+        if secret:
+            message = message.replace(secret, "[redacted]")
+        report = getattr(error, "report", None)
+        serialize_report = getattr(report, "model_dump", None)
+        write_json(
+            context.output_path("generation_failure.json"),
+            {
+                "error_type": type(error).__name__,
+                "message": message,
+                "validation": serialize_report(mode="json") if callable(serialize_report) else None,
+            },
+        )
+        if isinstance(capture, ResponseCapture):
+            write_json(context.output_path("failed_model_response.json"), capture.snapshot())
+        raise
+    finally:
+        usage = getattr(loaded.provider, "last_record", None)
+        if usage:
+            write_json(context.output_path("provider_usage.json"), usage)
     validation = validate_grounded_response(request, response)
     section = ManuscriptSection(
         section_name=section_name,
@@ -199,9 +245,6 @@ def section_node(context: WorkerContext) -> dict[str, Any]:
     write_json(context.output_path("section.json"), section)
     write_json(context.output_path("candidate.json"), response)
     write_json(context.output_path("grounding.json"), validation)
-    usage = getattr(loaded.provider, "last_record", None)
-    if usage:
-        write_json(context.output_path("provider_usage.json"), usage)
     return {
         "section_name": section_name,
         "provider": settings.provider,
@@ -233,12 +276,13 @@ def assemble_node(context: WorkerContext) -> dict[str, Any]:
     abstract_section = next(
         (section for section in sections if section.section_name == "Abstract"), None
     )
+    cited_ids = {citation_id for section in sections for citation_id in section.citation_ids}
     manuscript = Manuscript(
         title=loaded.config.project_name,
         title_candidates=[loaded.config.project_name],
         abstract=abstract,
         sections=[section for section in sections if section.section_name != "Abstract"],
-        references=loaded.citations,
+        references=[citation for citation in loaded.citations if citation.citation_id in cited_ids],
         tables=loaded.ingested["tables"],
         ai_disclosure=(
             f"This candidate draft was assembled using ManuscriptForge with provider {settings.provider}. "
@@ -250,6 +294,7 @@ def assemble_node(context: WorkerContext) -> dict[str, Any]:
             "model": settings.model if settings.provider == "openai" else None,
             "workflow": "research-manuscript-v1",
             "requires_human_review": True,
+            "input_citation_records": len(loaded.citations),
             "abstract_provenance": abstract_section.model_dump(mode="json")
             if abstract_section
             else None,

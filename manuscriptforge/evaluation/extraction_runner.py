@@ -5,11 +5,13 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import platform
 import random
 import statistics
 import time
 import uuid
 from datetime import UTC, datetime
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any, Literal
 
@@ -38,6 +40,21 @@ LABEL_HINTS = (
 CapturePolicy = Literal["off", "failures", "all"]
 
 
+def _input_contract(
+    dataset: EvaluationDataset, scoring_version: ExtractionProtocol, label_hints: str
+) -> None:
+    validate_extraction_protocol(scoring_version)
+    if not isinstance(label_hints, str):
+        raise ValueError("Label hints must be a string; use an empty string to omit them")
+    if (
+        dataset.dataset_id in {"original-quantities-v1", "original-quantities-v1.1"}
+        and scoring_version != "2.1-quantities"
+    ):
+        raise ValueError("The quantities benchmark requires explicit protocol 2.1-quantities")
+    if dataset.dataset_id == "original-quantities-v1.1" and label_hints:
+        raise ValueError("Quantity v1.1 requires label_hints='' to preserve its exact predicates")
+
+
 def _capture(candidate) -> ResponseCapture | None:
     value = getattr(getattr(_owner(candidate), "provider", None), "response_capture", None)
     return value if isinstance(value, ResponseCapture) else None
@@ -63,14 +80,16 @@ def evaluate_source_only(
     *,
     scoring_version: ExtractionProtocol = "2.0-source-only",
     capture_policy: CapturePolicy = "off",
+    label_hints: str = LABEL_HINTS,
 ) -> dict[str, Any]:
-    validate_extraction_protocol(scoring_version)
+    _input_contract(dataset, scoring_version, label_hints)
     if capture_policy not in {"off", "failures", "all"}:
         raise ValueError(f"Unsupported response capture policy: {capture_policy}")
     case = next(case for case in dataset.cases if case.case_id == case_id)
     task = public_task(dataset, case_id).model_copy(deep=True)
     task.facts = []
-    task.query += LABEL_HINTS
+    task.query += label_hints
+    model_query_hash = hashlib.sha256(task.query.encode("utf-8")).hexdigest()
     original_sources = [source.model_copy(deep=True) for source in task.sources]
     started = time.perf_counter()
     error = None
@@ -122,6 +141,7 @@ def evaluate_source_only(
             "prediction": prediction.model_dump(mode="json"),
             "extraction_result": result.model_dump(mode="json") if result else None,
             "model_input_contains_gold_facts": False,
+            "model_query_sha256": model_query_hash,
             "independent_group": next(
                 min(group)
                 for group in independent_source_groups(dataset)
@@ -217,12 +237,11 @@ def run_extraction_comparison(
     candidate_name: str = "candidate",
     scoring_version: ExtractionProtocol = "2.0-source-only",
     capture_policy: CapturePolicy = "off",
+    label_hints: str = LABEL_HINTS,
 ) -> Path:
-    validate_extraction_protocol(scoring_version)
+    _input_contract(dataset, scoring_version, label_hints)
     if capture_policy not in {"off", "failures", "all"}:
         raise ValueError(f"Unsupported response capture policy: {capture_policy}")
-    if dataset.dataset_id == "original-quantities-v1" and scoring_version != "2.1-quantities":
-        raise ValueError("The quantities benchmark requires explicit protocol 2.1-quantities")
     validation = validate_dataset(dataset)
     cases = [case for case in dataset.cases if case.split == split]
     if not cases:
@@ -250,7 +269,18 @@ def run_extraction_comparison(
         "baseline_name": baseline_name,
         "candidate_name": candidate_name,
         "model_input": "query and raw sources only; gold facts omitted",
-        "generic_label_hints": LABEL_HINTS,
+        "generic_label_hints": label_hints,
+        "input_contract": {
+            "dataset_id": dataset.dataset_id,
+            "dataset_revision": dataset.revision,
+            "label_hints_sha256": hashlib.sha256(label_hints.encode("utf-8")).hexdigest(),
+        },
+        "runtime": {
+            "python": platform.python_version(),
+            "implementation": platform.python_implementation(),
+            "platform": platform.platform(),
+            "pydantic": version("pydantic"),
+        },
         "predictor_metadata": predictor_metadata,
         "configured_extraction_guards": {
             name: metadata.get("quantity_protocol") for name, metadata in predictor_metadata.items()
@@ -280,6 +310,7 @@ def run_extraction_comparison(
                     method,
                     scoring_version=scoring_version,
                     capture_policy=capture_policy,
+                    label_hints=label_hints,
                 )
                 _save_capture(run, name, row)
                 _append(run / f"{name}.jsonl", row)
@@ -351,7 +382,13 @@ def _finish_extraction(
     lines = [
         f"# Source-only extraction evaluation {protocol['protocol_version']}",
         "",
-        "Models received raw sources, the query, and generic count/duration label hints. No reference fact values, answer IDs, or expected labels were supplied.",
+        "Models received raw sources and the query. "
+        + (
+            "The recorded label hints were appended. "
+            if protocol["generic_label_hints"]
+            else "No label hints were appended. "
+        )
+        + "No reference fact values, answer IDs, or expected labels were supplied.",
         "",
         "| Metric | Baseline | Candidate |",
         "| --- | ---: | ---: |",

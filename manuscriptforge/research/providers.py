@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from pathlib import Path
 
 from manuscriptforge.llm.base import LLMProvider
@@ -32,7 +33,7 @@ def load_configured_key(project_dir: Path) -> bool:
         return True
     if os.environ.get("MANUSCRIPTFORGE_KEY_FILE"):
         return load_key_file(Path(os.environ["MANUSCRIPTFORGE_KEY_FILE"]))
-    if os.name == "nt":
+    if sys.platform == "win32":
         import winreg
 
         try:

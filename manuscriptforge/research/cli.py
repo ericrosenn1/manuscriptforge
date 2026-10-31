@@ -21,6 +21,32 @@ app = typer.Typer(help="Resumable multi-node research workflows and auditable ev
 console = Console()
 
 
+def _verified_claims(project: Path, run_id: str, *, raw: bool = False):
+    from manuscriptforge.models.claim import ScientificClaim
+    from manuscriptforge.orchestration.storage import contained_file, hash_file
+    from manuscriptforge.utils.io import read_json
+
+    engine = research_engine(project)
+    run = engine.status(run_id)
+    node = run.nodes.get("claims")
+    if node is None or node.status not in {"succeeded", "cached"} or not node.artifact_dir:
+        raise ValueError("The selected run has no completed claim registry")
+    name = "claim_registry_unreviewed.json" if raw else "claim_registry.json"
+    artifact = next((item for item in node.artifacts if item.path == name), None)
+    if artifact is None:
+        raise ValueError("This run predates claim review; create a new research run")
+    directory = Path(node.artifact_dir)
+    if not directory.resolve().is_relative_to(engine.state_dir.resolve()):
+        raise ValueError("Claim registry leaves the workflow state directory")
+    path = contained_file(directory, name)
+    if hash_file(path) != artifact.sha256:
+        raise ValueError("Claim registry failed its recorded hash check")
+    values = read_json(path)
+    if hash_file(path) != artifact.sha256 or not isinstance(values, list):
+        raise ValueError("Claim registry changed or is malformed")
+    return [ScientificClaim.model_validate(value) for value in values]
+
+
 def _show(result: RunRecord) -> None:
     table = Table(title=f"Research run {result.run_id}: {result.status}")
     for column in ("Node", "Status", "Attempts", "Artifacts"):
@@ -43,6 +69,71 @@ def _show(result: RunRecord) -> None:
 def plan(project: Path) -> None:
     """Show the trusted workflow and declared inputs without executing it."""
     console.print_json(build_research_plan(project, ResearchSettings()).model_dump_json())
+
+
+@app.command("claims")
+def claims(project: Path, run_id: str) -> None:
+    """Inspect verified extracted claims and their current review status."""
+    try:
+        values = _verified_claims(project, run_id)
+        console.print_json(
+            json.dumps(
+                [
+                    {
+                        "claim_id": item.claim_id,
+                        "section": item.section_target,
+                        "support": item.support_strength,
+                        "needs_human_review": item.needs_human_review,
+                        "text": item.claim_text,
+                    }
+                    for item in values
+                ]
+            )
+        )
+    except (ValueError, OSError) as error:
+        console.print(f"Claim inspection failed: {error}", style="red", markup=False)
+        raise typer.Exit(1) from error
+
+
+@app.command("review-claim")
+def review_claim(
+    project: Path,
+    run_id: str,
+    claim_id: str,
+    decision: Annotated[str, typer.Option()],
+    support: Annotated[str, typer.Option()],
+    reviewer: Annotated[str, typer.Option()],
+    reason: Annotated[str, typer.Option()],
+    section: str | None = None,
+) -> None:
+    """Record an explicit, source-bound author decision; never edit source claims."""
+    from manuscriptforge.config import load_project_config
+    from manuscriptforge.models.claim import SupportStrength
+    from manuscriptforge.research.claim_reviews import append_claim_review
+
+    try:
+        original = _verified_claims(project, run_id, raw=True)
+        selected = next((item for item in original if item.claim_id == claim_id), None)
+        if selected is None:
+            raise ValueError("Claim ID is not present in the selected run")
+        if (
+            section is not None
+            and section not in load_project_config(project).manuscript.include_sections
+        ):
+            raise ValueError("The requested section is not enabled in project.yaml")
+        review = append_claim_review(
+            project.resolve() / "claim_reviews.jsonl",
+            selected,
+            decision=cast(Literal["approve", "reject"], decision),
+            support_strength=cast(SupportStrength, support),
+            reviewer=reviewer,
+            reason=reason,
+            section_target=section,
+        )
+    except (ValueError, OSError) as error:
+        console.print(f"Claim review failed: {error}", style="red", markup=False)
+        raise typer.Exit(1) from error
+    console.print(f"Recorded review {review.review_id}. Run or resume the workflow to apply it.")
 
 
 @app.command("demo")
@@ -238,9 +329,11 @@ def compare_model_command(
     capture_policy: str = "off",
     baseline_quantity_protocol: str = "2.1",
     candidate_quantity_protocol: str = "2.1",
+    label_hints: str | None = None,
+    no_label_hints: bool = False,
 ) -> None:
     """Compare models on raw sources and hidden reference facts under one cost cap."""
-    from manuscriptforge.evaluation.extraction_runner import CapturePolicy
+    from manuscriptforge.evaluation.extraction_runner import LABEL_HINTS, CapturePolicy
     from manuscriptforge.evaluation.extraction_scoring import ExtractionProtocol
     from manuscriptforge.evaluation.models import EvaluationDataset, Split
     from manuscriptforge.evaluation.synthetic import build_synthetic_dataset
@@ -252,6 +345,8 @@ def compare_model_command(
         raise typer.BadParameter("Unsupported scoring version")
     if capture_policy not in {"off", "failures", "all"}:
         raise typer.BadParameter("Capture policy must be off, failures, or all")
+    if no_label_hints and label_hints is not None:
+        raise typer.BadParameter("Choose either --label-hints or --no-label-hints")
     if any(
         value not in {"2.0", "2.1"}
         for value in (baseline_quantity_protocol, candidate_quantity_protocol)
@@ -287,6 +382,11 @@ def compare_model_command(
             capture_policy=cast(CapturePolicy, capture_policy),
             baseline_quantity_protocol=cast(Literal["2.0", "2.1"], baseline_quantity_protocol),
             candidate_quantity_protocol=cast(Literal["2.0", "2.1"], candidate_quantity_protocol),
+            label_hints=""
+            if no_label_hints
+            else LABEL_HINTS
+            if label_hints is None
+            else label_hints,
         )
     except (ValueError, OSError, RuntimeError) as error:
         console.print(f"[red]Model comparison failed: {error}[/red]")

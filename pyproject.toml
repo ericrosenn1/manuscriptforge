@@ -38,7 +38,8 @@ dependencies = [
 dev = [
   "mypy>=1.10",
   "pytest>=8.0",
-  "pytest-cov>=5.0",
+  "pytest-cov>=7.0,<8",
+  "coverage>=7.10.3,<8",
   "ruff>=0.5",
   "build>=1.2",
   "cffconvert>=2.0",
@@ -58,7 +59,7 @@ manuscriptforge = "manuscriptforge.cli:app"
 packages = ["manuscriptforge"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/CITATION.cff", "/.gitignore", "/.gitattributes", "/.env.example"]
+include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/CHANGELOG.md", "/CITATION.cff", "/.gitignore", "/.gitattributes", "/.env.example"]
 
 [tool.ruff]
 line-length = 100
@@ -77,3 +78,8 @@ python_version = "3.11"
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["manuscriptforge"]
+relative_files = true
+patch = ["subprocess"]

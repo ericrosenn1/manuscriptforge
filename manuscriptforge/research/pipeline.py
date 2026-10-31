@@ -145,8 +145,13 @@ def build_research_plan(project_dir: Path, settings: ResearchSettings) -> Pipeli
             handler="claims",
             depends_on=["ingest"],
             input_paths=["project.yaml"],
+            optional_input_paths=["claim_reviews.jsonl"],
             parameters={},
-            expected_outputs=["claim_registry.json"],
+            expected_outputs=[
+                "claim_registry.json",
+                "claim_registry_unreviewed.json",
+                "claim_review_audit.json",
+            ],
             **shared,
         ),
     ]

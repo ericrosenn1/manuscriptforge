@@ -11,7 +11,11 @@ from decimal import ROUND_CEILING, Decimal
 from pathlib import Path
 from typing import Any, Literal
 
-from manuscriptforge.evaluation.extraction_runner import CapturePolicy, run_extraction_comparison
+from manuscriptforge.evaluation.extraction_runner import (
+    LABEL_HINTS,
+    CapturePolicy,
+    run_extraction_comparison,
+)
 from manuscriptforge.evaluation.extraction_scoring import (
     ExtractionProtocol,
     validate_extraction_protocol,
@@ -185,6 +189,7 @@ def compare_models(
     seed: int = 20261031,
     scoring_version: ExtractionProtocol = "2.0-source-only",
     capture_policy: CapturePolicy = "off",
+    label_hints: str = LABEL_HINTS,
     baseline_quantity_protocol: Literal["2.0", "2.1"] = "2.1",
     candidate_quantity_protocol: Literal["2.0", "2.1"] = "2.1",
 ) -> Path:
@@ -198,6 +203,10 @@ def compare_models(
     validate_extraction_protocol(scoring_version)
     if capture_policy not in {"off", "failures", "all"}:
         raise ValueError("Unsupported response capture policy")
+    if not isinstance(label_hints, str):
+        raise ValueError("Label hints must be an explicit string")
+    if dataset.dataset_id == "original-quantities-v1.1" and label_hints:
+        raise ValueError("Quantity v1.1 specifies its own predicates; label hints must be empty")
     if baseline_quantity_protocol not in {"2.0", "2.1"} or candidate_quantity_protocol not in {
         "2.0",
         "2.1",
@@ -229,6 +238,7 @@ def compare_models(
         "planned_cases": case_count,
         "scoring_version": scoring_version,
         "capture_policy": capture_policy,
+        "label_hints": label_hints,
         "quantity_protocols": {
             "baseline": baseline_quantity_protocol,
             "candidate": candidate_quantity_protocol,
@@ -252,6 +262,7 @@ def compare_models(
             candidate_name=f"{candidate.settings.model}:{candidate.settings.reasoning_effort}",
             scoring_version=scoring_version,
             capture_policy=capture_policy,
+            label_hints=label_hints,
         )
         summary = _verified_result(run, campaign / "results", case_count)
         metadata["result"] = run.relative_to(campaign).as_posix()

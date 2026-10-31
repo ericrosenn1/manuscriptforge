@@ -656,6 +656,9 @@ class Orchestrator:
                 (directory / "stdout.log").open("wb") as stdout,
                 (directory / "stderr.log").open("wb") as stderr,
             ):
+                creation_flags = 0
+                if sys.platform == "win32":
+                    creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
                 process = subprocess.Popen(
                     command,
                     stdout=stdout,
@@ -663,7 +666,7 @@ class Orchestrator:
                     env=environment,
                     cwd=work,
                     start_new_session=os.name != "nt",
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
+                    creationflags=creation_flags,
                 )
             self._processes[attempt_id] = process
             try:

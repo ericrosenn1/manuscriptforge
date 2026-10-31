@@ -26,6 +26,10 @@ def rewritten(text: str, *, page: str) -> str:
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
     destination = root / "build" / "site-source"
+    if not destination.resolve().is_relative_to(root):
+        raise ValueError("Generated documentation must stay inside the repository")
+    if destination.is_symlink():
+        raise ValueError("Generated documentation cannot replace a linked directory")
     if destination.exists():
         shutil.rmtree(destination)
     destination.mkdir(parents=True)
@@ -36,7 +40,9 @@ def main() -> None:
     for source in (root / "docs").glob("*.md"):
         target = destination / "docs" / source.name
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(rewritten(source.read_text(encoding="utf-8"), page=source.name), encoding="utf-8")
+        target.write_text(
+            rewritten(source.read_text(encoding="utf-8"), page=source.name), encoding="utf-8"
+        )
     assets = root / "docs" / "assets"
     if assets.exists():
         shutil.copytree(assets, destination / "docs" / "assets")

@@ -307,7 +307,7 @@ def main() -> None:
         json.dumps(
             {
                 "output": str(args.output),
-                "sha256": hashlib.sha256(payload.encode()).hexdigest(),
+                "sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
                 "validation": validate_dataset(dataset),
             },
             sort_keys=True,

@@ -5,12 +5,16 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import tempfile
 from pathlib import Path
 
 from manuscriptforge.config import validate_project, write_project_config
 from manuscriptforge.demo import PASSAGES
+from manuscriptforge.evidence.claim_registry import build_claim_registry
+from manuscriptforge.ingest.project_ingest import ingest_project
 from manuscriptforge.models.project import ProjectConfig
 from manuscriptforge.orchestration.storage import is_link
+from manuscriptforge.research.claim_reviews import append_claim_review
 from manuscriptforge.style.curation import build_style_chunk_registry, update_style_chunk_approval
 from manuscriptforge.style.document_extractors import extract_style_corpus
 from manuscriptforge.utils.io import write_json, write_text
@@ -43,7 +47,7 @@ def prepare_research_demo(project_dir: Path) -> Path:
         if not marker.is_file():
             raise FileExistsError("Use an empty directory for the research demo")
         manifest = json.loads(marker.read_text(encoding="utf-8"))
-        if manifest.get("demo_id") != "research-records-v1":
+        if manifest.get("demo_id") not in {"research-records-v1", "research-records-v2"}:
             raise ValueError("Directory is not a recognized research demo")
         if _inventory(project) != manifest.get("inputs"):
             raise ValueError(
@@ -76,7 +80,7 @@ def prepare_research_demo(project_dir: Path) -> Path:
         "methods.md": "We constructed three synthetic record collections with deterministic labels. Collection A contains ten records, collection B contains twelve, and collection C contains eight. Missing labels were inserted explicitly. Summary counts were calculated from the generated records. No subjects, instruments, or real measurements were involved. Software transformations and source hashes are retained for reproducibility; no inferential statistical test was applied.",
         "interpretation_notes.md": "The counts describe only the generated records. Missing labels remain missing; they are not imputed. This small synthetic example cannot establish performance in scientific research. It is a functional demonstration of source traceability and reviewable output.",
         "figure_legends.md": "No empirical figures are supplied for this synthetic example.",
-        "source_list.md": "No external research sources or publication metadata are claimed. All input prose and toy records are original synthetic demonstration material.",
+        "source_list.md": "",
     }
     for name, text in notes.items():
         write_text(project / "inputs" / name, text + "\n")
@@ -128,14 +132,45 @@ def prepare_research_demo(project_dir: Path) -> Path:
     validation = validate_project(project)
     if not validation.ok:
         raise ValueError("Demo validation failed: " + "; ".join(validation.errors))
+    _seed_fixture_reviews(project, config)
     write_text(
         project / "README_PROJECT.md",
         "# Synthetic research workflow\n\n"
         "All records and prose are original demonstration material. Counts are derived from the toy records, not from an empirical study. "
+        "Claim reviews are explicitly scripted fixture labels, not human scientific validation. "
         "Run `manuscriptforge research run .` for a complete offline workflow. "
         "Inspect the resulting audits and source provenance; computational completion is not scientific validation.\n",
     )
     write_json(
-        marker, {"demo_id": "research-records-v1", "synthetic": True, "inputs": _inventory(project)}
+        marker, {"demo_id": "research-records-v2", "synthetic": True, "inputs": _inventory(project)}
     )
     return project
+
+
+def _seed_fixture_reviews(project: Path, config: ProjectConfig) -> None:
+    """Exercise author-review mechanics on our own disclosed synthetic fixture."""
+    output = project / "outputs"
+    output.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="fixture-review-", dir=output) as temporary:
+        data = ingest_project(project, Path(temporary), enrich_sources=False)
+        claims = build_claim_registry(project, Path(temporary), data)
+    for claim in claims:
+        section = None
+        if (
+            claim.section_target == "Discussion"
+            and (
+                "cannot establish" in claim.claim_text.lower()
+                or "counts describe only" in claim.claim_text.lower()
+            )
+            and "Limitations" in config.manuscript.include_sections
+        ):
+            section = "Limitations"
+        append_claim_review(
+            project / "claim_reviews.jsonl",
+            claim,
+            decision="approve",
+            support_strength="direct",
+            reviewer="Original synthetic demo fixture",
+            reason="Scripted fixture label for original toy records and notes; not human or scientific validation.",
+            section_target=section,
+        )

@@ -13,9 +13,17 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-_NUMBER = re.compile(
-    r"(?<![\w.,])(?:[+\-−]\s*)?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|\.\d+)"
-    r"(?:[eE][+\-−]?\s*\d+)?(?!\d|\.\d|,\d)"
+_NUMBER_LITERAL = (
+    r"(?:[+\-−]\s*)?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|\.\d+)"
+    r"(?:[eE][+\-−]?\s*\d+)?"
+)
+_NUMBER = re.compile(r"(?<![\w.,])" + _NUMBER_LITERAL + r"(?!\d|\.\d|,\d)")
+_INTERVAL = re.compile(
+    r"(?P<opening>[\[(])\s*(?P<lower>"
+    + _NUMBER_LITERAL
+    + r")\s*,\s*(?P<upper>"
+    + _NUMBER_LITERAL
+    + r")\s*(?P<closing>[\])])"
 )
 _POWER = r"(?:\s*\^\s*[+\-−]?\d+|[−-]?\d+|[⁻⁺]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?"
 _UNIT_PART = r"[A-Za-zµμ°%]+" + _POWER
@@ -138,6 +146,69 @@ _QUALIFIERS = (
     ("gt", r"(?:>|\bgreater\s+than|\bmore\s+than|\babove|\bover)\s*$"),
     ("approx", r"(?:≈|~|\babout|\bapproximately|\broughly|\baround|\bnearly)\s*$"),
 )
+# These bare nouns/adjectives can follow counts in prose. They are not physical
+# units. Only the grounded prose comparator uses this list; extraction retains
+# exact explicit unit binding. Unknown and compound units remain conservative.
+_NARRATIVE_COUNT_WORDS = frozenset(
+    [
+        "record",
+        "records",
+        "label",
+        "labels",
+        "row",
+        "rows",
+        "column",
+        "columns",
+        "file",
+        "files",
+        "item",
+        "items",
+        "entry",
+        "entries",
+        "observation",
+        "observations",
+        "sample",
+        "samples",
+        "measurement",
+        "measurements",
+        "replicate",
+        "replicates",
+        "trial",
+        "trials",
+        "event",
+        "events",
+        "error",
+        "errors",
+        "case",
+        "cases",
+        "participant",
+        "participants",
+        "subject",
+        "subjects",
+        "cell",
+        "cells",
+        "gene",
+        "genes",
+        "missing",
+        "available",
+        "unavailable",
+        "included",
+        "excluded",
+        "valid",
+        "invalid",
+        "unique",
+        "distinct",
+        "total",
+        "matched",
+        "unmatched",
+        "observed",
+        "reported",
+        "remaining",
+        "completed",
+        "failed",
+        "successful",
+    ]
+)
 
 
 def canonical_number(raw: str) -> str:
@@ -212,6 +283,29 @@ def quantity_mentions(text: str, *, ignore_locators: bool = True) -> list[Quanti
     scannable = (
         _LOCATOR_SPAN.sub(lambda match: " " * len(match.group()), text) if ignore_locators else text
     )
+    intervals: list[QuantityMention] = []
+    masked = list(scannable)
+    for match in _INTERVAL.finditer(scannable):
+        start = match.start()
+        unit, end = _read_unit(text, start, match.end())
+        relation = "interval:" + match["opening"] + match["closing"]
+        prefix = text[max(0, start - 100) : start]
+        for label, pattern in _QUALIFIERS:
+            if re.search(pattern, prefix, re.I):
+                relation += ":" + label
+                break
+        intervals.append(
+            QuantityMention(
+                (canonical_number(match["lower"]), canonical_number(match["upper"])),
+                unit,
+                relation,
+                start,
+                end,
+                text[start:end],
+            )
+        )
+        masked[start:end] = " " * (end - start)
+    scannable = "".join(masked)
     for match in _NUMBER.finditer(scannable):
         start, number_end = match.span()
         if start < consumed:
@@ -237,7 +331,7 @@ def quantity_mentions(text: str, *, ignore_locators: bool = True) -> list[Quanti
                 break
         atoms.append(_Atom(canonical_number(match.group()), unit, relation, start, number_end, end))
         consumed = end
-    results: list[QuantityMention] = []
+    results: list[QuantityMention] = intervals
     index = 0
     while index < len(atoms):
         first = atoms[index]
@@ -283,7 +377,7 @@ def quantity_mentions(text: str, *, ignore_locators: bool = True) -> list[Quanti
             )
         )
         index += 1
-    return results
+    return sorted(results, key=lambda mention: mention.start)
 
 
 def quantity_proposal_supported(value: str, unit: str | None, quote: str) -> bool | None:
@@ -295,10 +389,20 @@ def quantity_proposal_supported(value: str, unit: str | None, quote: str) -> boo
     return all(mention.signature in available for mention in proposed)
 
 
-def unsupported_quantities(candidate: str, evidence: str) -> list[QuantityMention]:
-    available = {mention.signature for mention in quantity_mentions(evidence)}
+def unsupported_quantities(
+    candidate: str, evidence: str, *, narrative_counts: bool = False
+) -> list[QuantityMention]:
+    """Compare quantities; optional prose counts do not validate counted-entity semantics."""
+
+    def signature(mention: QuantityMention) -> tuple[tuple[str, ...], str, str]:
+        unit = mention.unit
+        if narrative_counts and unit.casefold() in _NARRATIVE_COUNT_WORDS:
+            unit = ""
+        return mention.values, unit, mention.relation
+
+    available = {signature(mention) for mention in quantity_mentions(evidence)}
     return [
-        mention for mention in quantity_mentions(candidate) if mention.signature not in available
+        mention for mention in quantity_mentions(candidate) if signature(mention) not in available
     ]
 
 

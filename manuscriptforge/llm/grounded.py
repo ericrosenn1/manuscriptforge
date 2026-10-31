@@ -17,6 +17,12 @@ from manuscriptforge.evidence.quantities import (
     mask_known_citations,
     unsupported_quantities,
 )
+from manuscriptforge.evidence.table_bindings import (
+    TableBindingReport,
+    TableRowBinding,
+    check_table_bindings,
+    derive_table_bindings,
+)
 from manuscriptforge.llm.base import LLMProvider, LLMResponseError
 from manuscriptforge.llm.prompts import GROUNDED_SECTION_SYSTEM
 from manuscriptforge.models.claim import SupportStrength
@@ -75,6 +81,7 @@ class GroundedSectionRequest(GroundedModel):
     instructions: str = "Write a concise section using only the supplied evidence."
     claims: list[GroundedClaim] = Field(default_factory=list)
     evidence: list[GroundedEvidence] = Field(default_factory=list)
+    table_bindings: list[TableRowBinding] = Field(default_factory=list)
     citations: list[GroundedCitation] = Field(default_factory=list)
     style_examples: list[StyleExample] = Field(default_factory=list)
     max_words: int = Field(default=800, ge=1, le=5000)
@@ -91,6 +98,11 @@ class GroundedSectionRequest(GroundedModel):
             if len(ids) != len(set(ids)):
                 raise ValueError(f"Duplicate {field} values are not allowed")
         evidence_ids = {item.evidence_id for item in self.evidence}
+        binding_ids = [item.evidence_id for item in self.table_bindings]
+        if len(binding_ids) != len(set(binding_ids)):
+            raise ValueError("Duplicate table binding evidence IDs are not allowed")
+        if not set(binding_ids) <= evidence_ids:
+            raise ValueError("A table binding references evidence not present in the request")
         citation_ids = {item.citation_id for item in self.citations}
         for claim in self.claims:
             if not set(claim.evidence_ids) <= evidence_ids:
@@ -121,6 +133,11 @@ class GroundedSectionResponse(GroundedModel):
     requires_human_review: Literal[True] = True
 
 
+class GroundedTableBindingCheck(GroundedModel):
+    paragraph_index: int
+    report: TableBindingReport
+
+
 class GroundedValidationReport(GroundedModel):
     valid: bool
     request_hash: str
@@ -128,7 +145,11 @@ class GroundedValidationReport(GroundedModel):
     checks: list[str] = Field(default_factory=list)
     requires_human_review: Literal[True] = True
     quantity_protocol: Literal["2.1"] | None = None
-    limitation: str = "Referential and numeric checks cannot establish semantic entailment or scientific validity."
+    table_binding_checks: list[GroundedTableBindingCheck] = Field(default_factory=list)
+    limitation: str = (
+        "Referential and numeric checks cannot establish semantic entailment or scientific validity. "
+        "Counted-entity labels and field-name interpretations require human review."
+    )
 
 
 class GroundingValidationError(LLMResponseError):
@@ -159,6 +180,7 @@ def validate_grounded_response(
     request: GroundedSectionRequest, response: GroundedSectionResponse
 ) -> GroundedValidationReport:
     issues: list[str] = []
+    table_checks: list[GroundedTableBindingCheck] = []
     if response.section_name.casefold() != request.section_name.casefold():
         issues.append("section_name does not match the requested section")
     claims = {claim.claim_id: claim for claim in request.claims}
@@ -217,7 +239,9 @@ def validate_grounded_response(
             issues.append(prefix + "citation was not linked to the cited claims")
         if not set(paragraph.style_chunk_ids) <= styles.keys():
             issues.append(prefix + "unknown style-example IDs")
-        source_text = "\n".join(
+        # A numeric token at one record's end must not acquire a unit from the
+        # next independent record. Preserve boundaries while pooling support.
+        source_text = "\n;\n".join(
             [claim.claim_text for claim in selected]
             + [evidence[eid].text for claim in selected for eid in claim.evidence_ids]
         )
@@ -228,8 +252,16 @@ def validate_grounded_response(
         ]
         candidate_quantities = mask_known_citations(paragraph.text, cited_records)
         evidence_quantities = mask_known_citations(source_text, cited_records)
+        selected_evidence_ids = {eid for claim in selected for eid in claim.evidence_ids}
+        row_report = check_table_bindings(
+            paragraph.text,
+            [item for item in request.table_bindings if item.evidence_id in selected_evidence_ids],
+        )
+        table_checks.append(GroundedTableBindingCheck(paragraph_index=index, report=row_report))
+        if row_report.status == "inconsistent":
+            issues.extend(prefix + "table row binding: " + issue for issue in row_report.issues)
         if ambiguous_numeric_fragments(candidate_quantities) or unsupported_quantities(
-            candidate_quantities, evidence_quantities
+            candidate_quantities, evidence_quantities, narrative_counts=True
         ):
             issues.append(
                 prefix + "numeric literal, quantitative unit, or bound absent from cited evidence"
@@ -272,12 +304,14 @@ def validate_grounded_response(
     return GroundedValidationReport(
         valid=not issues,
         quantity_protocol="2.1",
+        table_binding_checks=table_checks,
         issues=issues,
         request_hash=sha256_text(render_grounded_request(request)),
         checks=[
             "source ID membership",
             "claim support linkage",
             "claim-specific quantities, units, and bounds",
+            "explicit table row associations (coverage reported separately)",
             "registered citation identifiers",
             "style-only copying",
             "word limit",
@@ -349,6 +383,7 @@ def request_from_context(
             )
             for item in evidence_by_id.values()
         ],
+        table_bindings=derive_table_bindings(list(evidence_by_id.values())),
         citations=[
             GroundedCitation(
                 citation_id=citation.citation_id,
