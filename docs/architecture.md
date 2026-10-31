@@ -11,6 +11,22 @@ ManuscriptForge keeps source documents, extracted representations, review decisi
 | [style/profiler.py](../manuscriptforge/style/profiler.py), [style/features.py](../manuscriptforge/style/features.py) | Calculate descriptive features on selected chunks | Global and section profiles, chunk index, style guide |
 | [demo.py](../manuscriptforge/demo.py) | Supply original synthetic inputs and check the public workflow's outputs | Demo report, portable summary, integrity manifest |
 
+## Browser studio
+
+The browser application under `web/` is a separate React and TypeScript client built with Vite. It adds an interactive workflow while preserving the Python toolkit and its file-based APIs. The client does not call a Python service or invoke a model provider.
+
+| Layer | Responsibility |
+| --- | --- |
+| React interface | Workspace navigation, source inspection, review decisions, visual summaries, manuscript editing, and exports |
+| `src/lib/types.ts` | Versioned workspace, source, passage, and analysis contracts |
+| `src/lib/analysis.ts` | Section splitting, content hashes, explicit selection, and deterministic descriptive metrics |
+| `src/lib/files.ts` | Bounded local document imports, validated workspace imports, DOCX output, and portable archive creation |
+| `src/lib/storage.ts` | Local browser persistence and restoration |
+
+Source records keep their extracted text and identifiers. Passage decisions update the workspace, and the profile is derived from approved passages. The manuscript is separately editable and is not treated as validated scientific output. The ZIP export bundles readable artifacts and a checksum manifest; JSON import validates the workspace contract before use.
+
+The browser demo reuses the original synthetic prose from the Python demo. It does not execute the Python pipeline. Extraction, tokenization, and metrics may differ between engines; source-text reuse is not a numerical-parity claim. See the [studio guide](studio.md) for storage, format, and interpretation limits.
+
 ## Identity and curation
 
 A source record includes its file hash and extraction status. A chunk records its source-relative filename, content hash, inferred section, and stable ID. Chunk IDs include source location, section, ordinal position, and text hash. Identical text in two source files therefore has the same content hash but distinct chunk IDs.

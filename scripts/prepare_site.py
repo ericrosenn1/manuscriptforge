@@ -36,6 +36,9 @@ def main() -> None:
         target = destination / "docs" / source.name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(rewritten(source.read_text(encoding="utf-8"), page=source.name), encoding="utf-8")
+    assets = root / "docs" / "assets"
+    if assets.exists():
+        shutil.copytree(assets, destination / "docs" / "assets")
 
 
 if __name__ == "__main__":
