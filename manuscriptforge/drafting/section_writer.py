@@ -91,6 +91,7 @@ def write_generic_section(context: ManuscriptContext, section_name: str) -> Manu
         section_name,
         " ".join(claim.claim_text for claim in claims[:3]),
         max_examples=context.config.style.max_style_examples_per_section,
+        project_dir=context.project_dir,
     )
     unresolved_flags: list[str] = []
     notes: list[str] = [f"Section goal: {section_goal(section_name)}."]

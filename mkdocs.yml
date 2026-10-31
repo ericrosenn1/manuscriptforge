@@ -1,5 +1,5 @@
 site_name: ManuscriptForge
-site_description: Local writing-corpus analysis with traceable reports.
+site_description: Reproducible research-writing workflows, learned preferences, and traceable evidence.
 site_url: https://ericrosenn1.github.io/manuscriptforge/
 repo_url: https://github.com/ericrosenn1/manuscriptforge
 repo_name: ericrosenn1/manuscriptforge
@@ -9,6 +9,15 @@ theme:
   name: readthedocs
 nav:
   - Overview: index.md
+  - Release notes: docs/release-0.2.0.md
+  - Research workflow: docs/research-workflow.md
+  - Author claim review: docs/claim-review.md
+  - Fact proposals: docs/fact-proposals.md
+  - Lexical retrieval: docs/lexical-retrieval.md
+  - Evaluation protocol: docs/evaluation.md
+  - Quantity dataset: docs/quantity-benchmark.md
+  - Preference learning: docs/learning.md
+  - Campaign scope: docs/research-campaign.md
   - Studio guide: docs/studio.md
   - Demo walkthrough: docs/demo.md
   - Usage: docs/usage.md

@@ -1,0 +1,144 @@
+{
+  "artifact_type": "reviewed_selection_record",
+  "selected_model": "gpt-6-luna",
+  "test_reselection": false,
+  "lock": {
+    "registered_at": "2026-10-31T12:37:14.887062+00:00",
+    "development_campaign": "quantity-dev-v11\\model-comparison-20261031T123157Z-10d28e05",
+    "selection_rule": "Equal 84/84 complete-case performance; select lower measured token-cost model.",
+    "selected_model": "gpt-6-luna",
+    "comparison_model": "gpt-6.1-sol",
+    "development_result": {
+      "gpt-6-luna": 84,
+      "gpt-6.1-sol": 84,
+      "cases": 84,
+      "delta": 0
+    },
+    "development_cost_estimates_usd": {
+      "gpt-6-luna": 0.0130264,
+      "gpt-6.1-sol": 0.237178
+    },
+    "test_partition": "test",
+    "test_cases": 84,
+    "independent_test_families": 6,
+    "prompt_and_model_parameters": "Same extraction/prompt/provider/scorer/budget code and parameters as development; low reasoning,2048 output tokens,standard tier",
+    "non_predictor_changes_since_development": {
+      "evidence/table_bindings.py": {
+        "before": "c9a50c523036f268c0cb3934a0c4b6b455701954f7e7120fac9e5c77c729f028",
+        "after": "ed5f7a8fceac909bc2e22c5591f95374b578f5c99782ba4c7796e4ca43946d13"
+      }
+    },
+    "non_predictor_change_reason": "Grounded manuscript table-row threshold handling is not called by source-only FactExtractionCandidate. All extraction, quantity, evaluator and provider source hashes match development.",
+    "test_policy": "Run each predeclared model once; no tuning or reselection based on test results.",
+    "scientific_validation": "not established; controlled synthetic templates only",
+    "frozen_source_directory_display": "evaluation-frozen-v11 (portable archive member)"
+  },
+  "lock_lead_seconds_before_test": 13.025888,
+  "study_protocol": {
+    "protocol": "quantity-model-selection-v2.1",
+    "registered_at": "2026-10-31T12:31:40.836787+00:00",
+    "dataset_sha256": "5df7a217af3891f338b7926009cae7afc0d00fd5f130b5839da9b817f7bd15cf",
+    "candidates": [
+      "gpt-6-luna",
+      "gpt-6.1-sol"
+    ],
+    "reasoning_effort": "low",
+    "service_tier": "standard",
+    "scoring_version": "2.1-quantities",
+    "extraction_guard": "2.1",
+    "output_token_limit": 2048,
+    "development_cases": 84,
+    "test_cases": 84,
+    "independent_families_per_partition": 6,
+    "primary_endpoint": "complete-case correctness, including independently verified quote, tuple, unit, source and required abstention",
+    "secondary_endpoints": [
+      "tuple precision and recall",
+      "required abstention accuracy",
+      "execution failures",
+      "per-stratum results",
+      "measured latency",
+      "token-based cost estimate"
+    ],
+    "selection_rule": [
+      "Compare complete-case rates on development partition only.",
+      "If equal, select lower measured token-cost configuration.",
+      "If accuracy differs, report paired family-bootstrap uncertainty; do not claim statistical superiority from a point difference alone."
+    ],
+    "repair_policy": "Up to three explicit development rounds for diagnosed prompt or technical defects; preserve every report and record changes. No adjustment after inspecting test outcomes.",
+    "test_policy": "Freeze implementation, prompts, parser/scorer versions and chosen configuration before test. Evaluate both predeclared models once on test. Do not use test results to select or tune.",
+    "capture_policy": "all; original synthetic model output only; no credentials or request headers",
+    "budget_ledger": "api-budget.sqlite",
+    "total_campaign_cap_usd": "100",
+    "interpretation": "Controlled synthetic extraction capability and software usability; no scientific, clinical, real-author or natural-document efficacy validation.",
+    "development_round": 2,
+    "dataset_canonical_sha256": "e7ec83fc058fa80a93a34b7263f4f2b0540c501e864130f36e66792f4a276a14",
+    "implementation_sha256": "14e8057d66435681c1c7a89bdc7cc29605d79e58eddf0067fa6e1bbe0f7fc580",
+    "dataset_revision": "1.1",
+    "label_hints": "",
+    "prior_round_status": "Round1 invalid for model selection: ambiguous unit/value and predicate instructions; preserved as contract diagnostic.",
+    "unchanged": [
+      "source text",
+      "gold facts",
+      "source IDs",
+      "case IDs",
+      "family partitions",
+      "scientific endpoints",
+      "candidate model identities",
+      "primary selection rule"
+    ],
+    "amendments": [
+      "unambiguous value/unit fields",
+      "exact requested predicate key",
+      "no conflicting generic label hints",
+      "closed interval unit parser fix",
+      "documented surface/row guards"
+    ],
+    "metadata_correction": "Canonical identity in v2 was computed after an implicit Windows locale decode. Corrected with explicit UTF-8. Actual model CLI inputs and file-byte hash were already correct; no source data, labels, partitions or endpoint changed."
+  },
+  "protocol_history": "Original v2 preceded DEV. v2.1 is a canonical-digest metadata amendment during DEV, with identical inputs, endpoints and selection rule; both originals are preserved.",
+  "originals": [
+    {
+      "archive": "archives/evaluation-frozen-v11.zip",
+      "member": "quantity-test-lock-v1.json",
+      "file_sha256": "e433916833f3dac4a680ee8090db25e964321f67432a8f2739b6520390b16a30",
+      "bytes": 16366
+    },
+    {
+      "archive": "archives/evaluation-frozen-v11.zip",
+      "member": "quantity-study-protocol-v2.json",
+      "file_sha256": "d0c9ffb1f38c9e7560397d2fd4e9e792de67f6df15473011a2a2dd22f71c22ed",
+      "bytes": 2776
+    },
+    {
+      "archive": "archives/evaluation-frozen-v11.zip",
+      "member": "quantity-study-protocol-v2.1.json",
+      "file_sha256": "49b96f62a8b4ae002987e34bd79ea89a2c9d52b3ce168d6869d4d4d03c805a0a",
+      "bytes": 3038
+    }
+  ],
+  "frozen_source_manifest": {
+    "archive": "archives/evaluation-frozen-v11.zip",
+    "member": "evaluation-frozen-v11/source_manifest.json",
+    "file_sha256": "28ec94b42db97338607abb40c447935e507d36308c6246f6b0a7d2ea2f9c6b4f",
+    "bytes": 14480
+  },
+  "source_manifest_files": 150,
+  "source_files_match_manifest": true,
+  "dev_to_test_source_deltas": {
+    "evidence/table_bindings.py": {
+      "before": "c9a50c523036f268c0cb3934a0c4b6b455701954f7e7120fac9e5c77c729f028",
+      "after": "ed5f7a8fceac909bc2e22c5591f95374b578f5c99782ba4c7796e4ca43946d13"
+    }
+  },
+  "prelocked_delta_only": true,
+  "evaluator_hashes_unchanged": true,
+  "evaluator_files_compared": 13,
+  "predictor_metadata_unchanged": true,
+  "source_diff_interpretation": "Grounded manuscript table-row threshold handling is not called by source-only FactExtractionCandidate. All extraction, quantity, evaluator and provider source hashes match development.",
+  "path_redaction": "Only frozen_source_directory display is replaced; original file is byte-preserved in the archive.",
+  "limitations": [
+    "Source-only archive excludes interpreter, dependencies, environments and caches.",
+    "No model selection or tuning from TEST results.",
+    "Synthetic outcomes do not establish scientific validity or statistically conclusive superiority."
+  ]
+}

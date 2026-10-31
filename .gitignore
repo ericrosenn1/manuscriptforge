@@ -15,6 +15,7 @@ outputs/
 demo-output/
 local/
 .coverage
+.coverage.*
 coverage.xml
 htmlcov/
 node_modules/

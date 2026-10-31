@@ -22,6 +22,9 @@ from manuscriptforge.cli import app
 from manuscriptforge.demo import run_demo
 from manuscriptforge.config import validate_project
 from manuscriptforge.pipeline.pilot_prep import prep_pilot
+from manuscriptforge.research.demo import prepare_research_demo
+from manuscriptforge.research.pipeline import research_engine, run_research
+from manuscriptforge.research.search import search_run
 from typer.testing import CliRunner
 
 def blocked(*args, **kwargs):
@@ -40,8 +43,15 @@ second = run_demo(Path.cwd() / "synthetic-demo")
 assert first == second
 pilot = prep_pilot(Path.cwd() / "pilot", "bioinformatics_methods")
 assert validate_project(pilot.project_dir).ok
+research = prepare_research_demo(Path.cwd() / "research-demo")
+run = run_research(research)
+assert run.status == "succeeded"
+assert research_engine(research).verify_run(run.run_id).valid
+assert search_run(research, run.run_id, "records")["hits"]
+cached = run_research(research)
+assert all(node.status == "cached" for node in cached.nodes.values())
 print("Installed import:", module)
-print("PASS: help, installed resources, original synthetic demo and reproducible rerun")
+print("PASS: installed resources, legacy and research demos, provenance verification, evidence search, full cache reuse")
 '''
 
 
@@ -57,7 +67,7 @@ def main() -> None:
         environment = root / "env"
         venv.EnvBuilder(with_pip=True).create(environment)
         python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-        env = {key: value for key, value in os.environ.items() if key not in {"PYTHONPATH", "OPENAI_API_KEY", "OPENAI_MODEL"}}
+        env = {key: value for key, value in os.environ.items() if key not in {"PYTHONPATH", "OPENAI_API_KEY", "OPENAI_MODEL", "MANUSCRIPTFORGE_KEY_FILE"}}
         env["PYTHONNOUSERSITE"] = "1"
         subprocess.run([str(python), "-m", "pip", "install", str(distribution)], cwd=root, env=env, check=True)
         subprocess.run([str(python), "-m", "pip", "check"], cwd=root, env=env, check=True)

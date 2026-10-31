@@ -1,104 +1,114 @@
 # ManuscriptForge
 
-### A considered workspace for research writing.
+### Research writing with an inspectable chain of evidence.
 
-Turn writing samples into a reviewed corpus, explore the patterns in your prose, and work on a manuscript with its sources close at hand. ManuscriptForge pairs an interactive browser studio with a local Python toolkit for traceable document analysis.
+ManuscriptForge is a Python research-writing engine with reproducible execution, source-linked drafts, local retrieval, and a trainable style-preference ranker. It keeps inputs, evidence, author decisions, candidate prose, and validation results distinct.
 
 [![Python CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml)
 [![Studio CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/studio.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/studio.yml)
-[![Local first](https://img.shields.io/badge/local--first-no_API_key-47685C)](docs/studio.md#privacy-and-storage)
 
-![ManuscriptForge Studio: an editorial workspace with a corpus overview, section coverage, and writing analysis](docs/assets/studio-overview.png)
+**[Research workflow](docs/research-workflow.md)** · **[Evaluation](docs/evaluation.md)** · **[Benchmark evidence](https://github.com/ericrosenn1/manuscriptforge/tree/main/benchmarks/2026-10-31)** · **[0.2.0 release notes](docs/release-0.2.0.md)** · **[Optional Studio](docs/studio.md)**
 
-**[Open the live studio](https://ericrosenn1.github.io/manuscriptforge/studio/)** · **[Studio guide](docs/studio.md)** · **[Python walkthrough](docs/demo.md)** · **[Architecture](docs/architecture.md)** · **[Development](docs/development.md)**
+## What it does
 
-## Start the studio
+| Capability | Implemented behavior |
+| --- | --- |
+| Reproducible execution | A trusted dependency graph runs isolated stages with durable state, bounded retries, cancellation, content-addressed reuse, and hash verification. |
+| Document and evidence intake | Reads local text, Markdown, DOCX, text-based PDFs, tables, and citation records. Source hashes and locations accompany extracted material. |
+| Grounded candidate drafting | A typed model boundary checks source IDs, claim linkage, numerical consistency, citation identifiers, style-only copying, and output limits. Rejected output cannot silently become an accepted section. |
+| Author claim review | Explicit, fingerprint-bound approvals and rejections preserve original evidence, detect stale decisions, and invalidate only affected stages. Models cannot approve their own claims. [Review guide](docs/claim-review.md). |
+| Local retrieval | Inspectable BM25 or Jaccard ranking, metadata filters, optional diversity selection, and validated serialized indexes. |
+| Learned style preferences | A NumPy logistic ranker learns from explicit labeled passage pairs. It uses stylometric features, grouped holdouts, and train-only scaling; ranking leaves text unchanged. |
+| Evaluation and handoff | Paired held-out functional tests, abstention and calibration measurements, latency/usage records, immutable artifacts, and a verified manuscript bundle. |
 
-The studio runs entirely in your browser. You can explore the bundled synthetic collection immediately, or start an empty workspace and import your own documents. No account, Python server, API key, or model download is required.
+```mermaid
+flowchart LR
+    I[Project inputs] --> V[Validate and snapshot]
+    V --> N[Ingest]
+    N --> P[Style profile]
+    N --> C[Claims and author decisions]
+    P --> S[Section workers]
+    C --> S
+    S --> A[Assemble candidate]
+    A --> Q[Audit and qualify]
+    Q --> E[Verified export bundle]
+```
 
-With Git and Node.js 24 installed:
+A successful run means the computational workflow completed. It does **not** establish scientific truth, semantic entailment, publishable writing quality, or faithful imitation of an author.
+
+## Start locally
+
+Use Python 3.11–3.13 and Git. Install from the repository in a virtual environment:
 
 ```bash
 git clone https://github.com/ericrosenn1/manuscriptforge.git
 cd manuscriptforge
+python -m venv .venv
+# Activate .venv using your shell, then:
+python -m pip install -e ".[dev]"
+python -m manuscriptforge.cli research demo ../manuscriptforge-demo --no-run
+python -m manuscriptforge.cli research plan ../manuscriptforge-demo
+python -m manuscriptforge.cli research run ../manuscriptforge-demo --provider mock
+```
+
+In Windows PowerShell, use `.\.venv\Scripts\python.exe` in place of `python` without activating the environment. The v2 research demo is an original synthetic nonmedical project with explicitly scripted fixture approvals; its draft and audit findings are for inspection, not scientific acceptance. No API key is required for the mock workflow. For your own data, use the [author claim-review workflow](docs/claim-review.md).
+
+Use the run ID printed by `research run`:
+
+```bash
+manuscriptforge research status ../manuscriptforge-demo RUN_ID
+manuscriptforge research verify ../manuscriptforge-demo RUN_ID
+manuscriptforge research resume ../manuscriptforge-demo RUN_ID
+```
+
+The [research guide](docs/research-workflow.md) covers inputs, resume, cancellation, artifacts, model access, and budgets. The original `manuscriptforge demo NEW_DIR` command remains available for the smaller writing-corpus walkthrough.
+
+## Evidence and limits
+
+The evaluation suite preserves negative and inconclusive results rather than treating generated files as proof of model quality.
+
+| Check | Observed scope | Interpretation |
+| --- | --- | --- |
+| Adversarial regression probes | The pinned pre-campaign source passed 0/11 selected invariants; the repaired implementation passed 11/11. | Targeted software corrections, not a language-model quality score. The [reproducible probe script](scripts/benchmark_invariants.py) runs against either source tree. |
+| [Locked quantity evaluation](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-test.summary.json) | Development: both models 84/84. Test: Luna 83/84, Sol 84/84; one Luna sign error was rejected. | Synthetic source-quote, tuple and abstention checks across six test families. The small difference does not establish model superiority. |
+| Synthetic source retrieval | BM25 and Jaccard showed no relevance difference on the controlled held-out collection. | A null relevance finding is retained. Timing is specific to the synthetic fixture and hardware. |
+| Learned preference mechanism | 24/24 held-out synthetic pairs versus 11/24 for the training-majority baseline, across six held-out document groups. | Labels come from a disclosed latent rule. This does not establish real-author efficacy. |
+| Model-generated prose | Structured source checks and explicit review flags. | Factual entailment, scientific conclusions, and author preference require separate validation. |
+
+The [release notes](docs/release-0.2.0.md) separate model results, local workflow timings, lexical speed measurements, and the dated budget snapshot. The [benchmark package](https://github.com/ericrosenn1/manuscriptforge/tree/main/benchmarks/2026-10-31) includes original reports, downloadable archives, and verification manifests. These are historical measured snapshots, not a performance claim for later code. See the [evaluation protocol](docs/evaluation.md) and [learning model notes](docs/learning.md). Legacy style scores are labeled diagnostic; absent evidence produces null or inconclusive results. No universal writing-quality or hallucination-free claim is made.
+
+![Measured workflow and retrieval performance on synthetic inputs](docs/assets/research-performance-20261031.png)
+
+The [timing records and reproduction commands](benchmarks/2026-10-31/README.md) identify the workload, implementation snapshot, and limits of these local measurements.
+
+## Data and model access
+
+Local workflows are the default. Optional paid model calls require explicit network permission, a configured provider, and a shared budget ledger. Input snapshots and exported reports may contain source prose: review them before sharing. Source documents are treated as data, not executable instructions.
+
+Install the optional provider with `python -m pip install -e ".[openai]"` before using it.
+
+The [research guide](docs/research-workflow.md) explains the budget gate, records, and privacy boundary. API keys belong in the local environment or an ignored `.env` file, never in commands, reports, or committed source.
+
+## Optional browser Studio
+
+The separate browser interface offers source inspection, passage review, descriptive charts, manuscript editing, and portable exports. It runs locally without a Python server or API key; it does not invoke the research engine automatically.
+
+```bash
 npm ci --prefix web
 npm run dev --prefix web
 ```
 
-Open the local address printed in the terminal. The [studio guide](docs/studio.md) covers the complete workflow and production builds.
+<details>
+<summary>See the browser workspace</summary>
 
-## From source documents to an intentional draft
+![ManuscriptForge Studio with source counts, section coverage, and a writing workflow](docs/assets/studio-overview.png)
 
-| Workspace | What you can do |
-| --- | --- |
-| **Overview** | See corpus size, review status, section coverage, and the next useful step. All metrics are computed from your current workspace. |
-| **Source library** | Import Markdown, plain text, DOCX, and text-based PDF files. Inspect extracted text and SHA-256 source identifiers. |
-| **Passage review** | Filter passages, approve or exclude them, and record the reasoning behind a decision. Only approved passages contribute to the profile. |
-| **Style profile** | Explore sentence lengths, recurring terms, section balance, and rule-based linguistic indicators. |
-| **Manuscript** | Write and revise in Markdown, preview the document, and export a Markdown or DOCX copy. |
-| **Exports** | Download a portable ZIP with the workspace, extracted source text, review decisions, analysis, manuscript, and a checksum manifest. Reopen the workspace from its JSON file. |
+</details>
 
-The studio saves changes to this browser on this device. Download a workspace export when you need a backup or want to move between devices.
+[Studio guide](docs/studio.md) · [Python corpus walkthrough](docs/demo.md) · [Development and validation](docs/development.md)
 
-## A demo with inspectable provenance
+## Author and citation
 
-The bundled collection uses original, explicitly synthetic passages about an imagined distance-sensor documentation procedure. Its three documents produce seven passages: six approved sections and one excluded duplicate. You can change any decision and watch the profile respond.
-
-These are the same source passages used by the Python demo. The browser and Python engines have separate implementations; their tokenization, extraction, and descriptive metrics are not asserted to be numerically identical. The demo represents no physical experiment, real results, or actual author profile.
-
-## The Python toolkit
-
-The existing Python workflow remains available for local file processing, reviewed passage registries, section profiles, and reproducible reports. Use Python 3.11, 3.12, or 3.13.
-
-Windows PowerShell:
-
-```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install .
-.\.venv\Scripts\manuscriptforge.exe demo ..\manuscriptforge-demo
-```
-
-Linux or macOS:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install .
-manuscriptforge demo ../manuscriptforge-demo
-```
-
-Open the generated `DEMO_REPORT.md`. It links to the style guide, passage review, coverage report, and style cards. The demo checks its outputs and verifies an unchanged completed run when invoked again. Installation downloads dependencies; the demo itself runs offline.
-
-For your own documents, follow the [usage guide](docs/usage.md). Additional Python components support experimental claim and citation records, drafting, audits, feedback, and manuscript exports; see their [documented scope](docs/architecture.md#experimental-manuscript-path).
-
-## Design and engineering
-
-```mermaid
-flowchart LR
-    A[Source documents] --> B[Extracted text + hashes]
-    B --> C[Section passages]
-    C --> D[Explicit review decisions]
-    D --> E[Descriptive profile]
-    E --> F[Portable reports]
-    G[Manuscript editor] --> F
-```
-
-- **Inspectable data:** source identifiers, content hashes, passage decisions, and exports make the analysis traceable.
-- **Explicit selection:** pending and excluded passages remain visible while staying out of the browser profile.
-- **Portable state:** versioned JSON and an archive of readable files avoid a service dependency.
-- **Separate engines:** the TypeScript studio runs in the browser; the Python toolkit runs against local project folders. Neither quietly invokes the other.
-- **Tested workflows:** unit tests cover selection, analysis, import validation, and exports; browser tests cover real interactions. The existing Python test suite remains intact.
-
-## Boundaries
-
-ManuscriptForge describes writing samples; it does not grade writing quality, validate scientific claims, learn an author's identity, or generate new research. Sentence boundaries, section recognition, and linguistic indicators use rules. Sparse samples should be interpreted cautiously.
-
-PDF import requires a text layer and does not perform OCR. Document extraction does not preserve every layout, annotation, or tracked change. Browser storage is not encrypted and can be cleared by the browser. Exports contain the supplied prose and should be reviewed before sharing.
-
-The browser app has no analytics or server upload path. Hosting still serves application assets; external links open only when you follow them. The Python toolkit's optional network-capable providers require separate configuration.
-
-## Project and attribution
-
-Created by **Eric H. Rosenn**, with AI coding assistance. Citation metadata is in [CITATION.cff](CITATION.cff). This is research software with a usable browser workflow, not a scientifically validated author-modeling system.
+Created by **Eric H. Rosenn**, with AI coding assistance. Citation metadata is in [CITATION.cff](CITATION.cff).
 
 **License not yet specified.** No project-wide reuse license is granted here. Dependency licenses and applicable third-party notices remain with their respective materials.

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
-from manuscriptforge.models.style import StyleProfile
+from manuscriptforge.models.style import StyleChunk, StyleProfile
 from manuscriptforge.style.features import normalize_section_type
 from manuscriptforge.utils.ids import stable_id
 from manuscriptforge.utils.text import common_ngrams, split_sentences, word_tokens
@@ -89,7 +90,9 @@ def _style_score(
         if length_score > 0.75:
             reasons.append("sentence-length match")
 
-    total = (section_score * 0.5) + (overlap * 0.25) + (phrase_overlap * 0.15) + (length_score * 0.1)
+    total = (
+        (section_score * 0.5) + (overlap * 0.25) + (phrase_overlap * 0.15) + (length_score * 0.1)
+    )
     if not reasons:
         reasons.append("nearest available style example")
     return round(total, 4), reasons
@@ -100,17 +103,54 @@ def get_style_exemplars(
     section_type: str,
     topic_terms: str | list[str],
     max_examples: int = 3,
+    *,
+    project_dir: Path | None = None,
 ) -> list[dict[str, Any]]:
+    if max_examples < 0:
+        raise ValueError("max_examples must be nonnegative")
+    if max_examples == 0:
+        return []
     normalized_section = normalize_section_type(section_type)
     query = _topic_text(topic_terms)
     query_tokens = set(word_tokens(query))
     query_phrases = set(common_ngrams(word_tokens(query), 2, limit=40))
+    chunks = _profile_chunks(profile)
+    if project_dir is not None:
+        from manuscriptforge.style.curation import apply_chunk_curation_to_profile_chunks
+
+        candidates = [
+            StyleChunk.model_validate(
+                {
+                    "token_estimate": len(word_tokens(str(chunk.get("text", "")))),
+                    "sentence_count": len(split_sentences(str(chunk.get("text", "")))),
+                    "paragraph_count": 1,
+                    **chunk,
+                }
+            )
+            for chunk in chunks
+        ]
+        eligible, _ = apply_chunk_curation_to_profile_chunks(
+            Path(project_dir), candidates, required_use="exemplar_retrieval"
+        )
+        eligible_ids = {chunk.chunk_id for chunk in eligible}
+        chunks = [chunk for chunk in chunks if chunk.get("chunk_id") in eligible_ids]
+    elif profile.global_features.get("style_chunk_curation", {}).get("require_chunk_approval"):
+        # A serialized profile does not establish separate permission to reuse raw prose.
+        return []
     scored = []
-    for chunk in _profile_chunks(profile):
-        score, reasons = _style_score(profile, chunk, normalized_section, query_tokens, query_phrases)
+    for chunk in chunks:
+        if str(chunk.get("style_mode", profile.style_mode)) not in {profile.style_mode, "unknown", ""}:
+            continue
+        if not str(chunk.get("text", "")).strip():
+            continue
+        score, reasons = _style_score(
+            profile, chunk, normalized_section, query_tokens, query_phrases
+        )
         scored.append((score, chunk, reasons))
     exemplars = []
-    for score, chunk, reasons in sorted(scored, key=lambda item: item[0], reverse=True)[:max_examples]:
+    for score, chunk, reasons in sorted(scored, key=lambda item: item[0], reverse=True)[
+        :max_examples
+    ]:
         exemplars.append(
             {
                 "chunk_id": str(chunk.get("chunk_id", "")),
@@ -127,5 +167,17 @@ def get_style_exemplars(
     return exemplars
 
 
-def retrieve_style_examples(profile: StyleProfile, section: str, query: str, limit: int = 3) -> list[str]:
-    return [item["text"] for item in get_style_exemplars(profile, section, query, max_examples=limit)]
+def retrieve_style_examples(
+    profile: StyleProfile,
+    section: str,
+    query: str,
+    limit: int = 3,
+    *,
+    project_dir: Path | None = None,
+) -> list[str]:
+    return [
+        item["text"]
+        for item in get_style_exemplars(
+            profile, section, query, max_examples=limit, project_dir=project_dir
+        )
+    ]

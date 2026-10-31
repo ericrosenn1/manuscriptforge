@@ -14,10 +14,18 @@ class EvidenceIndex:
         return [item for item in self.items if item.evidence_type == evidence_type]
 
     def search(self, query: str, limit: int = 5) -> list[EvidenceItem]:
+        if limit < 0:
+            raise ValueError("limit must be nonnegative")
         query_tokens = set(word_tokens(query))
         scored = []
         for item in self.items:
             tokens = set(word_tokens(item.text))
             score = len(query_tokens & tokens) / max(len(query_tokens | tokens), 1)
             scored.append((score, item))
-        return [item for score, item in sorted(scored, reverse=True)[:limit] if score > 0]
+        return [
+            item
+            for score, item in sorted(scored, key=lambda pair: (-pair[0], pair[1].evidence_id))[
+                :limit
+            ]
+            if score > 0
+        ]

@@ -1,0 +1,116 @@
+{
+  "artifact_type": "reviewed_summary_derivative",
+  "title": "Targeted synthetic regression invariants",
+  "historical_snapshot": true,
+  "final_current_code_performance": false,
+  "synthetic_only": true,
+  "scientific_validation": "NOT_EVALUATED",
+  "display_path_policy": "Portable archive/member references only; originals and manifests preserved byte-for-byte.",
+  "source_reports": [
+    {
+      "archive": "archives/engine-invariants.zip",
+      "member": "invariants-baseline.json",
+      "file_sha256": "187129cb484d982f58e6604f3fa39c550d5c1a9d182c22bf1a5b73b34453408d",
+      "bytes": 7067
+    },
+    {
+      "archive": "archives/engine-invariants.zip",
+      "member": "invariants-candidate.json",
+      "file_sha256": "fa0a5179b6ef5d98d822b38e04fffe6d5c2a95f4659ccb68ec35aa75ee45dd53",
+      "bytes": 10342
+    },
+    {
+      "archive": "archives/engine-invariants.zip",
+      "member": "invariants-comparison.json",
+      "file_sha256": "c44fa16ea2d4bf39987247eef6491572dc1bdb7139c4930b1c1fca7a87331a1f",
+      "bytes": 16002
+    }
+  ],
+  "baseline_revision": "fbd7b17397b3947298f1b1191e2a607c3c7127f7",
+  "candidate_revision_label": "engine-campaign-working-snapshot",
+  "candidate_exact_commit_recorded": false,
+  "source_code_reference": {
+    "baseline": {
+      "audit/citation_audit.py": "b8703a034adc9d58886b9bc3e66ac2ad7ecacffae86c2ba3aaf64c62a57b97d3",
+      "audit/no_invention_audit.py": "12184baace6dd7c18c95448894b27a190dec8231452595995a1c71a3c0efe63f",
+      "evidence/citation_mapper.py": "35c7e3efa8c3a6c12f339a76845791b6aca1227f74284046e07851b506224ca1",
+      "evidence/claim_extractor.py": "84a3020853c94be3a10eb9aa30ead5d92a5e6d6fcbc25bef842f18663adc1c6c",
+      "style/benchmark.py": "80146fe42bd022d72573cb5441566c2848f7b322764ae47b928fde7e8eb007e4",
+      "style/evaluation.py": "cc9afca8f63b0f71490f2b69c39459a30fec7b6a4ad30dce6117c4fd8b61e8b6"
+    },
+    "candidate": {
+      "audit/citation_audit.py": "4b39e6aa642212cf88e8b09ea7a91149db76a52a1e9e55d2ef51f9ed33035eae",
+      "audit/no_invention_audit.py": "f6ef40ccd47d1407083f4ea7365b89a67118a217aa2a69c5b4def626fc41c9eb",
+      "evidence/citation_mapper.py": "d30929a0a3c4948e878c578fb68eeadc339cdf9ce2d7100546761a3a55bfff60",
+      "evidence/claim_extractor.py": "ec9a4a60af4ab36154f2ab97945ef9d4f8a936cb8b34c4c816439c2ed0127f4c",
+      "style/benchmark.py": "c1ed47570dae7c9d7389cd4929a03912af9ddd21c50cd439b4484a77cd86c33b",
+      "style/evaluation.py": "c47fb1d399df4dffee986066457e59bf2464950757f1ab53aa18439d9e6444d1"
+    }
+  },
+  "baseline_passes": 0,
+  "candidate_passes": 11,
+  "invariant_cases": 11,
+  "cases": [
+    {
+      "case": "no_numeric_style_features",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "empty_manuscript_score",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "empty_eval_output",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "wrong_nonempty_section",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "stopword_citation_match",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "swapped_numbers",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "percent_unit_changed",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "invented_year",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "unregistered_numeric_citation",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "equal_group_means",
+      "baseline_pass": false,
+      "candidate_pass": true
+    },
+    {
+      "case": "zero_configured_threshold",
+      "baseline_pass": false,
+      "candidate_pass": true
+    }
+  ],
+  "limitations": [
+    "Eleven targeted regression invariants, not a random estimate of defect prevalence or general language-model reliability.",
+    "Field-presence completeness remains a diagnostic; it is not referential integrity or semantic validation.",
+    "Working-snapshot label is not an exact Git revision; per-file hashes identify tested code.",
+    "No LLM performance or scientific validity established."
+  ]
+}

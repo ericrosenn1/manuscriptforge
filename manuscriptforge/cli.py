@@ -92,6 +92,7 @@ from manuscriptforge.pipeline.workflow import (
     run_style_summary,
     validation_summary,
 )
+from manuscriptforge.research.cli import app as research_app
 from manuscriptforge.style.curation import (
     build_style_cards as run_build_style_cards,
 )
@@ -122,6 +123,7 @@ from manuscriptforge.style.document_extractors import (
 from manuscriptforge.utils.io import read_json
 
 app = typer.Typer(no_args_is_help=True, help="Local writing-corpus analysis and traceable manuscript workflows.")
+app.add_typer(research_app, name="research")
 console = Console()
 
 

@@ -2,3 +2,5 @@
 *.docx binary
 *.pdf binary
 *.xlsx binary
+# Preserve measured artifact bytes across Windows and Linux checkouts.
+benchmarks/** -text whitespace=cr-at-eol

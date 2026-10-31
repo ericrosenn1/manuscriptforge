@@ -276,14 +276,18 @@ def _cached_payload(
         or existing.asset_id != asset_id
         or existing.extraction_status not in SUCCESSFUL_EXTRACTION_STATUSES
         or existing.extracted_text_path != expected_cache_path.relative_to(project_dir).as_posix()
+        or not existing.extracted_text_hash
     ):
         return None
     if not expected_cache_path.exists():
         return None
-    text = expected_cache_path.read_text(encoding="utf-8", errors="ignore")
-    if not text.strip():
+    try:
+        text = expected_cache_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
         return None
-    return _ExtractionPayload(record=existing, text=text)
+    if not text.strip() or sha256_text(text) != existing.extracted_text_hash:
+        return None
+    return _ExtractionPayload(record=existing.model_copy(update={"source_path": existing.relative_path}), text=text)
 
 
 def _extract_docx_text(path: Path) -> tuple[str, int, list[str]]:
@@ -352,13 +356,14 @@ def _build_record(
     rel_path = _rel(path, project_dir)
     return StyleDocumentExtraction(
         asset_id=asset_id or stable_id("asset", f"{rel_path}:{content_hash}"),
-        source_path=str(path),
+        source_path=rel_path,
         relative_path=rel_path,
         filename=path.name,
         extension=path.suffix.lower(),
         style_mode=style_mode,
         extraction_status=status,  # type: ignore[arg-type]
         extracted_text_path=extracted_text_path,
+        extracted_text_hash=sha256_text(text) if text else None,
         extracted_char_count=len(text),
         extracted_word_count=len(word_tokens(text)),
         page_count=page_count,
@@ -591,8 +596,13 @@ def _text_for_extraction(project_dir: Path, item: StyleDocumentExtraction, text_
         return text_cache[item.relative_path]
     if item.extracted_text_path:
         path = _validated_project_path(project_dir, project_dir / item.extracted_text_path)
-        if path.exists():
-            return path.read_text(encoding="utf-8", errors="ignore")
+        if path.exists() and item.extracted_text_hash:
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                return ""
+            if sha256_text(text) == item.extracted_text_hash:
+                return text
     return ""
 
 

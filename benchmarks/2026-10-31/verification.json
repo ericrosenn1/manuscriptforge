@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "payload_files": 30,
+  "archives": 10,
+  "original_members": 717,
+  "zip_members_verified": 727,
+  "historical_original_manifest_entries_verified": 1076,
+  "frozen_implementation_hashes_verified": 150,
+  "crc_inventory_and_original_hash_checks": "PASS",
+  "scientific_validation": "NOT_EVALUATED"
+}

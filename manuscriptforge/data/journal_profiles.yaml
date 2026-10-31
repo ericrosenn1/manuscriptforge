@@ -1,3 +1,14 @@
+# Project-defined general research checklist; not a publisher's requirements.
+generic_research:
+  required_sections: [Abstract, Introduction, Methods, Results, Discussion, References]
+  optional_sections: [Limitations, Conclusion]
+  abstract_word_limit: 400
+  manuscript_word_limit: 6000
+  citation_style: numeric
+  required_statements: [data_availability, code_availability, ai_disclosure]
+  reporting_checklist: [methods_reproducibility, software_versions, limitations]
+  reviewer_focus: [source traceability, reproducibility, interpretation limits]
+
 generic_biomedical:
   required_sections:
     - Abstract

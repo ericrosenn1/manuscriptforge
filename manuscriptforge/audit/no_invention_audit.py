@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from manuscriptforge.audit.citation_audit import PLACEHOLDER_RE
+from manuscriptforge.audit.numeric_consistency import numeric_mentions
 from manuscriptforge.models.audit import AuditFinding
 from manuscriptforge.models.citation import CitationRecord
 from manuscriptforge.models.claim import ScientificClaim
@@ -66,11 +67,48 @@ def _allowed_numbers(
     for table in (ingested or {}).get("tables", []):
         for row in table.get("rows", []):
             text_parts.extend(str(value) for value in row.values() if value is not None)
-    return {match.group(0).rstrip("%") for match in NUMBER_RE.finditer("\n".join(text_parts))}
+    return {f"{item.value}|{item.unit}" for item in numeric_mentions("\n".join(text_parts))}
 
 
 def _manuscript_text(manuscript: Manuscript) -> str:
     return "\n".join([manuscript.title, manuscript.abstract] + [s.content for s in manuscript.sections])
+
+
+def _audit_numeric_context(manuscript: Manuscript, claims: list[ScientificClaim],
+                           ingested: dict[str, Any] | None) -> list[AuditFinding]:
+    registry = {claim.claim_id: claim for claim in claims}
+    fallback = [claim.claim_text for claim in claims]
+    fallback.extend(item.get("text", "") for item in (ingested or {}).get("text_inputs", {}).values())
+    for table in (ingested or {}).get("tables", []):
+        fallback.extend(" ".join(f"{key} {value}" for key, value in row.items()) for row in table.get("rows", []))
+    findings: list[AuditFinding] = []
+    for section in manuscript.sections:
+        linked = [registry[key] for key in section.claim_ids if key in registry]
+        evidence_text = [item.text for claim in linked for item in claim.evidence_items]
+        evidence_text.extend(claim.claim_text for claim in linked)
+        source_numbers = numeric_mentions("\n".join(evidence_text or fallback))
+        for mention in numeric_mentions(section.content):
+            equal_values = [item for item in source_numbers if item.value == mention.value]
+            matching_units = [item for item in equal_values if item.unit == mention.unit]
+            reason = None
+            if linked and not equal_values:
+                reason = "not found in the section's linked claims or evidence"
+            elif equal_values and not matching_units:
+                reason = "unit differs from the supplied numeric context"
+            elif mention.group and matching_units:
+                known_groups = {item.group for item in matching_units if item.group}
+                if known_groups and mention.group not in known_groups:
+                    reason = "explicit group label differs from the supplied numeric context"
+            if reason:
+                findings.append(AuditFinding(
+                    finding_id=stable_id("aud", f"numeric_context:{section.section_name}:{mention}:{reason}"),
+                    severity="warning", category="numeric_context",
+                    message=f"Numeric context needs review: {mention.raw} ({reason}).",
+                    location=section.section_name,
+                    suggested_fix="Check subject, value, unit, and source association; a shared number alone is not factual support.",
+                    related_claim_ids=[claim.claim_id for claim in linked],
+                ))
+    return findings
 
 
 def audit_no_invention(
@@ -156,22 +194,22 @@ def audit_no_invention(
             )
 
     allowed_numbers = _allowed_numbers(claims, citations, ingested)
-    for number in {match.group(0).rstrip("%") for match in NUMBER_RE.finditer(text)}:
-        if len(number) == 4 and 1800 <= int(float(number)) <= 2100:
-            continue
-        if number not in allowed_numbers:
+    for number in set(numeric_mentions(text)):
+        if f"{number.value}|{number.unit}" not in allowed_numbers:
             findings.append(
                 AuditFinding(
-                    finding_id=stable_id("aud", "number" + number),
+                    finding_id=stable_id("aud", "number" + number.raw),
                     severity="warning",
                     category="no_invention",
-                    message=f"Numeric value may not be traceable to supplied inputs: {number}.",
+                    message=f"Numeric value or unit may not be traceable to supplied inputs: {number.raw} {number.unit}.",
                     location="manuscript",
                     suggested_fix="Verify the number against tables, notes, or citations; otherwise remove it.",
                 )
             )
 
-    report_lines = ["# No-Invention Report", "", f"- Findings: {len(findings)}", ""]
+    findings.extend(_audit_numeric_context(manuscript, claims, ingested))
+    report_lines = ["# No-Invention Report", "", f"- Findings: {len(findings)}",
+                    "- These are syntactic consistency checks, not semantic or scientific validation.", ""]
     for finding in findings:
         report_lines.append(f"- {finding.severity}: {finding.message}")
     return findings, "\n".join(report_lines).strip() + "\n"

@@ -97,7 +97,8 @@ def _descriptor(row: dict[str, Any], role_columns: dict[str, list[str]] | None =
 
 def _detect_group_mean_columns(row: dict[str, Any]) -> tuple[str | None, str | None]:
     keys = [str(key) for key in row]
-    response = next((key for key in keys if "response" in key.lower() and "mean" in key.lower()), None)
+    response = next((key for key in keys if "response" in key.lower() and "mean" in key.lower()
+        and "nonresponse" not in key.lower().replace("_", "").replace("-", "")), None)
     nonresponse = next(
         (
             key
@@ -115,7 +116,10 @@ def _detect_group_mean_columns(row: dict[str, Any]) -> tuple[str | None, str | N
 def _threshold_for_column(column: str | None, thresholds: dict[str, float]) -> float:
     if not column:
         return SIGNIFICANCE_THRESHOLD
-    return thresholds.get(column) or thresholds.get("p_value") or thresholds.get("adjusted_p_value") or SIGNIFICANCE_THRESHOLD
+    for key in (column, "p_value", "adjusted_p_value"):
+        if key in thresholds and thresholds[key] is not None:
+            return thresholds[key]
+    return SIGNIFICANCE_THRESHOLD
 
 
 def _row_claim_text(
@@ -136,9 +140,9 @@ def _row_claim_text(
 
     parts: list[str] = []
     if response_col and nonresponse_col and response_value is not None and nonresponse_value is not None:
-        direction = "higher" if response_value > nonresponse_value else "lower"
+        direction = "higher than" if response_value > nonresponse_value else "lower than" if response_value < nonresponse_value else "equal to"
         parts.append(
-            f"{response_col} was {direction} than {nonresponse_col} "
+            f"{response_col} was {direction} {nonresponse_col} "
             f"({_format_value(response_value)} vs {_format_value(nonresponse_value)})"
         )
     if effect_col and row.get(effect_col) not in {None, ""}:

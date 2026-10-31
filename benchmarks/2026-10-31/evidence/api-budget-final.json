@@ -1,0 +1,12 @@
+{
+  "limit_usd": "100",
+  "committed_usd": "2.05701819",
+  "remaining_usd": "97.94298181",
+  "settled_usd": "2.05701819",
+  "uncertain_reservations": 0,
+  "pending_reservations": 0,
+  "attempt_count": 725,
+  "pricing_sha256": "1b5fe5f69d39043f2464f6d250b8ccc11db29f6c5b504691699ae5a6ab0c2fef",
+  "pricing_source": "https://developers.openai.com/api/docs/pricing",
+  "accounting_kind": "conservative_upper_bound_not_provider_invoice"
+}

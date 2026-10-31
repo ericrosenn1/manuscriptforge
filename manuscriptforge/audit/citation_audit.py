@@ -75,14 +75,23 @@ def audit_citations(
                         related_citation_ids=[token],
                     )
                 )
+            elif re.fullmatch(r"\d+(?:[-–]\d+)?", token):
+                findings.append(AuditFinding(
+                    finding_id=stable_id("aud", "unresolved_numeric" + token + str(match.start())),
+                    severity="warning", category="citation_mapping",
+                    message=f"Numeric citation [{token}] has no explicit numeric-to-registry mapping.",
+                    location=f"character {match.start()}",
+                    suggested_fix="Use registered citation IDs or supply an explicit numbered reference map.",
+                ))
     for claim in claims:
-        if claim.needs_citation and not claim.citation_ids:
+        if claim.needs_citation:
             findings.append(
                 AuditFinding(
                     finding_id=stable_id("aud", claim.claim_id + "missing_citation"),
                     severity="warning",
                     category="citation_mapping",
-                    message="Claim is marked as needing citation but has no citation IDs.",
+                    message=("Candidate citation mapping is unverified; confirm that the source supports this claim."
+                             if claim.citation_ids else "Claim is marked as needing citation but has no citation IDs."),
                     location=claim.claim_id,
                     suggested_fix="Map the claim to an existing citation record or mark it unsupported.",
                     related_claim_ids=[claim.claim_id],
