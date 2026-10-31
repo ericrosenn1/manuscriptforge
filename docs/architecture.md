@@ -26,6 +26,8 @@ The `research` command family adds a trusted, resumable manuscript DAG. It does 
 
 Node workspaces are separate from source snapshots. The final bundle contains the selected source material, stage artifacts, manuscript formats, audit findings, and checksums. Computational success publishes an immutable latest pointer; it does not imply scientific approval. See [Research workflow](research-workflow.md).
 
+Cancellation and terminal-state writes share a SQLite writer transaction boundary. A cancellation admitted before finalization prevents new worker admission and result publication; previously accepted successes and cache entries remain available. Finalization waits until active attempts are accounted for. A cancellation after a terminal state commits leaves that completed state unchanged.
+
 Author decisions live in a separate, append-only claim-review ledger. They bind to claim and evidence hashes, so a changed source cannot inherit an old approval. The claim stage preserves the unreviewed registry and writes a reviewed derivative plus an application audit. Review changes invalidate that stage and downstream work. See [Author claim review](claim-review.md). Manuscripts include only cited bibliography records; the full supplied citation registry remains in ingestion artifacts.
 
 Provider outputs remain candidates. Identifier and numeric checks establish specified forms of consistency, not unrestricted semantic entailment. The [evaluation protocol](evaluation.md) and [learning model notes](learning.md) describe the measured scope.

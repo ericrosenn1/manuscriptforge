@@ -456,6 +456,7 @@ def test_second_scheduler_cannot_take_live_run_ownership(tmp_path) -> None:
                 )
 
         wait_until(started)
+        assert engine._finalize("owned-run") is None  # Live attempts prohibit finalization.
         other = make_engine(engine.project_dir)
         with pytest.raises(RunLockedError):
             other.run(spec, run_id="owned-run", resume=True)
@@ -465,6 +466,216 @@ def test_second_scheduler_cannot_take_live_run_ownership(tmp_path) -> None:
     assert not thread.is_alive()
     assert not failures
     assert results[0].status == "cancelled"
+
+
+def test_cancellation_after_flag_read_cannot_finalize_as_failed(tmp_path, monkeypatch) -> None:
+    """Force the Windows CI interleaving instead of depending on thread timing."""
+    engine = make_engine(tmp_path / "project")
+    original = engine._cancelled
+    injected = False
+
+    def stale_flag(run_id):
+        nonlocal injected
+        observed = original(run_id)
+        if not observed and not injected:
+            with connect(engine.db_path) as connection:
+                running = connection.execute(
+                    "SELECT 1 FROM attempts WHERE run_id=? AND status='running' AND pid IS NOT NULL",
+                    (run_id,),
+                ).fetchone()
+            if running is not None:
+                injected = True
+                engine.cancel(run_id)
+                # The scheduler already read False before the cancellation.
+        return observed
+
+    monkeypatch.setattr(engine, "_cancelled", stale_flag)
+    try:
+        result = engine.run(
+            pipeline(node(handler="sleep", parameters={"seconds": 30})),
+            run_id="cancel-after-read",
+        )
+        assert injected, "A real worker must reach the startup handshake"
+        assert result.status == "cancelled"
+        assert result.nodes["a"].status == "cancelled"
+        assert result.nodes["a"].attempts == 0
+        with connect(engine.db_path) as connection:
+            attempt = connection.execute(
+                "SELECT status FROM attempts WHERE run_id='cancel-after-read'"
+            ).fetchone()
+        assert attempt["status"] == "cancelled"
+    finally:
+        engine.cancel("cancel-after-read")
+
+
+def assert_cancelled_and_reaped(engine, result):
+    assert result.status == "cancelled"
+    with connect(engine.db_path) as connection:
+        attempts = connection.execute(
+            "SELECT * FROM attempts WHERE run_id=?", (result.run_id,)
+        ).fetchall()
+    assert all(row["status"] != "running" for row in attempts)
+    for row in attempts:
+        for pid, started in (
+            (row["pid"], row["process_start"]),
+            (row["launcher_pid"], row["launcher_start"]),
+        ):
+            if pid is not None and started is not None:
+                assert not process_alive(pid, started)
+    assert not engine._processes
+    assert not (engine.project_dir / "outputs/latest.json").exists()
+
+
+def test_cancel_just_before_finalization_preserves_completed_node(tmp_path, monkeypatch) -> None:
+    engine = make_engine(tmp_path / "project")
+    original = engine._finalize
+
+    def cancel_first(run_id):
+        engine.cancel(run_id)
+        return original(run_id)
+
+    monkeypatch.setattr(engine, "_finalize", cancel_first)
+    result = engine.run(pipeline(node()), run_id="cancel-before-finalize")
+    assert_cancelled_and_reaped(engine, result)
+    assert result.nodes["a"].status == "succeeded"
+    assert read_value(result) == "value"
+    artifact = Path(result.nodes["a"].artifact_dir) / "value.json"
+    assert hash_file(artifact) == result.nodes["a"].artifacts[0].sha256
+    with connect(engine.db_path) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM cache WHERE valid=1").fetchone()[0] == 1
+
+
+def test_cancel_after_committed_finalization_is_noop(tmp_path, monkeypatch) -> None:
+    engine = make_engine(tmp_path / "project")
+    original = engine._finalize
+
+    def finish_first(run_id):
+        status = original(run_id)
+        if status is not None:
+            engine.cancel(run_id)
+        return status
+
+    monkeypatch.setattr(engine, "_finalize", finish_first)
+    result = engine.run(pipeline(node()), run_id="finalize-before-cancel")
+    assert result.status == "succeeded"
+    assert (engine.project_dir / "outputs/latest.json").is_file()
+    with connect(engine.db_path) as connection:
+        assert (
+            connection.execute(
+                "SELECT cancel_requested FROM runs WHERE run_id=?", (result.run_id,)
+            ).fetchone()[0]
+            == 0
+        )
+
+
+def test_cancel_during_receipt_verification_does_not_publish_or_launch_successor(
+    tmp_path, monkeypatch
+) -> None:
+    engine = make_engine(tmp_path / "project")
+    original = engine._verify_node
+    cancelled = False
+
+    def verify_then_cancel(record, outputs):
+        nonlocal cancelled
+        original(record, outputs)
+        if record.id == "a" and record.status == "succeeded" and not cancelled:
+            cancelled = True
+            engine.cancel("cancel-before-accept")
+
+    monkeypatch.setattr(engine, "_verify_node", verify_then_cancel)
+    result = engine.run(
+        pipeline(node(), node("successor", depends_on=["a"])), run_id="cancel-before-accept"
+    )
+    assert cancelled
+    assert_cancelled_and_reaped(engine, result)
+    assert result.nodes["a"].attempts == 0
+    assert result.nodes["successor"].attempts == 0
+    with connect(engine.db_path) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM cache WHERE valid=1").fetchone()[0] == 0
+
+
+def test_cancel_after_reservation_prevents_spawn_and_late_handshake(tmp_path, monkeypatch) -> None:
+    engine = make_engine(tmp_path / "project")
+    original_copy = type(os.environ).copy
+    injected = False
+
+    def copy_after_reservation(environment):
+        nonlocal injected
+        if not injected:
+            with connect(engine.db_path) as connection:
+                reserved = connection.execute(
+                    "SELECT 1 FROM attempts WHERE run_id='cancel-reserved' AND status='running'"
+                ).fetchone()
+            if reserved is not None:
+                injected = True
+                engine.cancel("cancel-reserved")
+        return original_copy(environment)
+
+    monkeypatch.setattr(type(os.environ), "copy", copy_after_reservation)
+    result = engine.run(pipeline(node()), run_id="cancel-reserved")
+    assert injected
+    assert_cancelled_and_reaped(engine, result)
+    assert result.nodes["a"].attempts == 0
+    with connect(engine.db_path) as connection:
+        attempt = connection.execute("SELECT * FROM attempts").fetchone()
+        assert attempt["launcher_pid"] is None  # No process was spawned.
+        # A late child must also refuse a still-running reservation when the
+        # durable cancellation flag has already committed.
+        connection.execute("UPDATE attempts SET status='running'")
+        connection.execute("UPDATE runs SET status='running'")
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "manuscriptforge.orchestration.worker",
+            "--job",
+            attempt["job_path"],
+        ],
+        capture_output=True,
+        timeout=10,
+    )
+    assert completed.returncode == 2
+    assert not (Path(attempt["attempt_dir"]) / "artifacts/value.json").exists()
+    with connect(engine.db_path) as connection:
+        assert connection.execute("SELECT pid FROM attempts").fetchone()[0] is None
+        connection.execute("UPDATE attempts SET status='cancelled'")
+        connection.execute("UPDATE runs SET status='cancelled'")
+
+
+@pytest.mark.parametrize("historical_status", ["failed", "pending"])
+def test_finalization_ignores_removed_historical_node_rows(tmp_path, historical_status) -> None:
+    engine = make_engine(tmp_path / "project")
+    original = engine.run(pipeline(node("removed"), node("keep")))
+    with connect(engine.db_path) as connection:
+        connection.execute(
+            "UPDATE nodes SET status=? WHERE run_id=? AND node_id='removed'",
+            (historical_status, original.run_id),
+        )
+    engine._prepare(pipeline(node("keep")), original.run_id, resume=True)
+    assert engine._finalize(original.run_id) == "succeeded"
+    with connect(engine.db_path) as connection:
+        historical = connection.execute(
+            "SELECT status FROM nodes WHERE run_id=? AND node_id='removed'", (original.run_id,)
+        ).fetchone()[0]
+    assert historical == historical_status  # Historical evidence is retained.
+
+
+def test_removed_node_active_attempt_still_blocks_finalization(tmp_path) -> None:
+    engine = make_engine(tmp_path / "project")
+    original = engine.run(pipeline(node("removed"), node("keep")))
+    engine._prepare(pipeline(node("keep")), original.run_id, resume=True)
+    with connect(engine.db_path) as connection:
+        connection.execute(
+            "UPDATE attempts SET status='running' WHERE run_id=? AND node_id='removed'",
+            (original.run_id,),
+        )
+    assert engine._finalize(original.run_id) is None
+    with connect(engine.db_path) as connection:
+        connection.execute(
+            "UPDATE attempts SET status='cancelled' WHERE run_id=? AND node_id='removed'",
+            (original.run_id,),
+        )
+    assert engine._finalize(original.run_id) == "succeeded"
 
 
 def test_reused_pid_identity_never_terminates_unrelated_process() -> None:

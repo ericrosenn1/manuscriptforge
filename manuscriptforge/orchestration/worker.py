@@ -46,8 +46,9 @@ def execute(job_path: Path) -> int:
     with connect(job.database_path) as connection:
         connection.execute(
             "UPDATE attempts SET pid=?,process_start=? WHERE attempt_id=? AND status='running' "
-            "AND pid IS NULL AND deadline_epoch>=?",
-            (own_pid, own_start, job.attempt_id, time.time()),
+            "AND pid IS NULL AND deadline_epoch>=? "
+            "AND EXISTS(SELECT 1 FROM runs WHERE run_id=? AND status='running' AND cancel_requested=0)",
+            (own_pid, own_start, job.attempt_id, time.time(), job.context.run_id),
         )
         row = connection.execute(
             "SELECT * FROM attempts WHERE attempt_id=?", (job.attempt_id,)

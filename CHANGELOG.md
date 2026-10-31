@@ -3,6 +3,7 @@
 ## 0.2.0 — 2026-10-31
 
 - Added resumable research workflows, isolated workers, verified caching and export bundles.
+- Serialized cancellation, worker admission, result acceptance, and finalization to prevent cancellation races; added deterministic regression coverage.
 - Added budgeted provider calls, quote-anchored fact proposals, and quantitative/citation guards.
 - Added source-bound author claim decisions, stale-review detection and explicit section routing; models cannot approve claims.
 - Limited manuscript bibliographies to cited records while retaining the full source citation registry.

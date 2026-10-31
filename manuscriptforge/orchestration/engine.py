@@ -509,6 +509,11 @@ class Orchestrator:
                 event(connection, run_id, "cache_rejected", node_id=node.id, error=str(exc))
             return False
         with connect(self.db_path) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute(
+                "SELECT cancel_requested FROM runs WHERE run_id=?", (run_id,)
+            ).fetchone()[0]:
+                return False
             connection.execute(
                 "UPDATE nodes SET status='cached',fingerprint=?,artifact_dir=?,artifacts_json=?,"
                 "metadata_json=?,error=NULL,reused_from=?,completed_at=? WHERE run_id=? AND node_id=?",
@@ -610,6 +615,11 @@ class Orchestrator:
         atomic_json(job_path, job.model_dump(mode="json"))
         now = time.time()
         with connect(self.db_path) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute(
+                "SELECT cancel_requested FROM runs WHERE run_id=?", (run_id,)
+            ).fetchone()[0]:
+                return
             connection.execute(
                 "INSERT INTO attempts(attempt_id,run_id,node_id,number,fingerprint,status,attempt_dir,job_path,"
                 "receipt_path,started_epoch,deadline_epoch,started_at) VALUES(?,?,?,?,?,'running',?,?,?,?,?,?)",
@@ -652,32 +662,48 @@ class Orchestrator:
             str(job_path),
         ]
         try:
-            with (
-                (directory / "stdout.log").open("wb") as stdout,
-                (directory / "stderr.log").open("wb") as stderr,
-            ):
-                creation_flags = 0
-                if sys.platform == "win32":
-                    creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
-                process = subprocess.Popen(
-                    command,
-                    stdout=stdout,
-                    stderr=stderr,
-                    env=environment,
-                    cwd=work,
-                    start_new_session=os.name != "nt",
-                    creationflags=creation_flags,
-                )
-            self._processes[attempt_id] = process
-            try:
-                started = psutil.Process(process.pid).create_time()
-            except psutil.Error:
-                started = None
             with connect(self.db_path) as connection:
-                connection.execute(
-                    "UPDATE attempts SET launcher_pid=?,launcher_start=? WHERE attempt_id=?",
-                    (process.pid, started, attempt_id),
+                connection.execute("BEGIN IMMEDIATE")
+                cancelled = bool(
+                    connection.execute(
+                        "SELECT cancel_requested FROM runs WHERE run_id=?", (run_id,)
+                    ).fetchone()[0]
                 )
+                if not cancelled:
+                    # Cancellation cannot miss a newly started child: its
+                    # verifiable launcher identity is committed before cancel
+                    # can acquire the same writer lock.
+                    with (
+                        (directory / "stdout.log").open("wb") as stdout,
+                        (directory / "stderr.log").open("wb") as stderr,
+                    ):
+                        creation_flags = 0
+                        if sys.platform == "win32":
+                            creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+                        process = subprocess.Popen(
+                            command,
+                            stdout=stdout,
+                            stderr=stderr,
+                            env=environment,
+                            cwd=work,
+                            start_new_session=os.name != "nt",
+                            creationflags=creation_flags,
+                        )
+                    self._processes[attempt_id] = process
+                    try:
+                        started = psutil.Process(process.pid).create_time()
+                    except psutil.Error:
+                        started = None
+                    connection.execute(
+                        "UPDATE attempts SET launcher_pid=?,launcher_start=? WHERE attempt_id=?",
+                        (process.pid, started, attempt_id),
+                    )
+            if cancelled:
+                with connect(self.db_path) as connection:
+                    attempt = connection.execute(
+                        "SELECT * FROM attempts WHERE attempt_id=?", (attempt_id,)
+                    ).fetchone()
+                self._failed_attempt(attempt, node, "Cancellation requested", kind="cancelled")
         except OSError as exc:
             with connect(self.db_path) as connection:
                 attempt = connection.execute(
@@ -696,6 +722,7 @@ class Orchestrator:
         returncode: int | None = None,
     ) -> bool:
         with connect(self.db_path) as connection:
+            connection.execute("BEGIN IMMEDIATE")
             current = connection.execute(
                 "SELECT * FROM attempts WHERE attempt_id=?", (attempt["attempt_id"],)
             ).fetchone()
@@ -703,6 +730,10 @@ class Orchestrator:
                 return False
             if attempt["pid"] is None and current["pid"] is not None:
                 return False  # The child completed its startup handshake meanwhile.
+            if connection.execute(
+                "SELECT cancel_requested FROM runs WHERE run_id=?", (attempt["run_id"],)
+            ).fetchone()[0]:
+                kind, error = "cancelled", "Cancellation requested"
             row = connection.execute(
                 "SELECT attempts FROM nodes WHERE run_id=? AND node_id=?",
                 (attempt["run_id"], node.id),
@@ -786,42 +817,52 @@ class Orchestrator:
         artifacts_json = canonical_json([item.model_dump() for item in receipt.artifacts])
         metadata_json = canonical_json(receipt.metadata)
         with connect(self.db_path) as connection:
-            connection.execute(
-                "UPDATE attempts SET status='succeeded',completed_at=?,returncode=? WHERE attempt_id=?",
-                (receipt.completed_at, returncode, attempt["attempt_id"]),
-            )
-            connection.execute(
-                "UPDATE nodes SET status='succeeded',artifact_dir=?,artifacts_json=?,metadata_json=?,"
-                "error=NULL,reused_from=NULL,completed_at=? WHERE run_id=? AND node_id=?",
-                (
-                    str(job.context.work_dir),
-                    artifacts_json,
-                    metadata_json,
-                    receipt.completed_at,
-                    attempt["run_id"],
-                    node.id,
-                ),
-            )
-            if node.cacheable:
+            connection.execute("BEGIN IMMEDIATE")
+            cancelled = bool(
                 connection.execute(
-                    "INSERT OR REPLACE INTO cache VALUES(?,?,?,?,?,?,1)",
+                    "SELECT cancel_requested FROM runs WHERE run_id=?", (attempt["run_id"],)
+                ).fetchone()[0]
+            )
+            if not cancelled:
+                connection.execute(
+                    "UPDATE attempts SET status='succeeded',completed_at=?,returncode=? WHERE attempt_id=?",
+                    (receipt.completed_at, returncode, attempt["attempt_id"]),
+                )
+                connection.execute(
+                    "UPDATE nodes SET status='succeeded',artifact_dir=?,artifacts_json=?,metadata_json=?,"
+                    "error=NULL,reused_from=NULL,completed_at=? WHERE run_id=? AND node_id=?",
                     (
-                        attempt["fingerprint"],
                         str(job.context.work_dir),
                         artifacts_json,
                         metadata_json,
-                        f"{attempt['run_id']}/{node.id}/{attempt['number']}",
                         receipt.completed_at,
+                        attempt["run_id"],
+                        node.id,
                     ),
                 )
-            event(
-                connection,
-                attempt["run_id"],
-                "succeeded",
-                node_id=node.id,
-                attempt_id=attempt["attempt_id"],
-                receipt_sha256=hash_file(Path(attempt["receipt_path"])),
-            )
+                if node.cacheable:
+                    connection.execute(
+                        "INSERT OR REPLACE INTO cache VALUES(?,?,?,?,?,?,1)",
+                        (
+                            attempt["fingerprint"],
+                            str(job.context.work_dir),
+                            artifacts_json,
+                            metadata_json,
+                            f"{attempt['run_id']}/{node.id}/{attempt['number']}",
+                            receipt.completed_at,
+                        ),
+                    )
+                event(
+                    connection,
+                    attempt["run_id"],
+                    "succeeded",
+                    node_id=node.id,
+                    attempt_id=attempt["attempt_id"],
+                    receipt_sha256=hash_file(Path(attempt["receipt_path"])),
+                )
+        if cancelled:
+            self._failed_attempt(attempt, node, "Cancellation requested", kind="cancelled")
+            return
         process = self._processes.pop(attempt["attempt_id"], None)
         if process is not None:
             process.wait(timeout=2)
@@ -887,6 +928,7 @@ class Orchestrator:
     def cancel(self, run_id: str) -> None:
         """Request cancellation and terminate only verified, owned subprocesses."""
         with connect(self.db_path) as connection:
+            connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT status FROM runs WHERE run_id=?", (safe_id(run_id),)
             ).fetchone()
@@ -914,6 +956,8 @@ class Orchestrator:
     ) -> bool:
         progress = False
         for node in spec.ordered_nodes():
+            if self._cancelled(run_id):
+                break
             state = self.status(run_id)
             current = state.nodes[node.id]
             if current.status == "running":
@@ -1009,6 +1053,50 @@ class Orchestrator:
                 },
             )
 
+    def _finalize(self, run_id: str) -> str | None:
+        """Atomically order finalization against admitted cancellation requests.
+
+        A cancellation committed while the run is active wins. Once this
+        transaction commits a terminal state, a later cancel is a no-op. Never
+        finalize while a worker attempt or node is still running.
+        """
+        with connect(self.db_path) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            run = connection.execute(
+                "SELECT status,cancel_requested,spec_json FROM runs WHERE run_id=?", (run_id,)
+            ).fetchone()
+            if run["status"] not in {"running", "pending"}:
+                return str(run["status"])
+            current_ids = {node["id"] for node in json.loads(run["spec_json"])["nodes"]}
+            statuses = [
+                row["status"]
+                for row in connection.execute(
+                    "SELECT node_id,status FROM nodes WHERE run_id=?", (run_id,)
+                )
+                if row["node_id"] in current_ids
+            ]
+            active = connection.execute(
+                "SELECT 1 FROM attempts WHERE run_id=? AND status='running' LIMIT 1", (run_id,)
+            ).fetchone()
+            if active is not None or "running" in statuses:
+                return None
+            if run["cancel_requested"]:
+                connection.execute(
+                    "UPDATE nodes SET status='cancelled',error='Cancellation requested' "
+                    "WHERE run_id=? AND status NOT IN ('succeeded','cached')",
+                    (run_id,),
+                )
+                status = "cancelled"
+            elif any(value not in TERMINAL for value in statuses):
+                return None
+            else:
+                status = "succeeded" if all(value in SUCCESS for value in statuses) else "failed"
+            connection.execute(
+                "UPDATE runs SET status=?,updated_at=? WHERE run_id=?", (status, utc_now(), run_id)
+            )
+            event(connection, run_id, "finalized", status=status)
+        return status
+
     def run(
         self,
         spec: PipelineSpec,
@@ -1038,25 +1126,27 @@ class Orchestrator:
             inventory = json.loads(row["snapshot_json"])
             specs = {node.id: node for node in spec.nodes}
             self._save_state(run_id)
-            cancelled = False
+            status = None
             try:
                 while True:
                     if cancel_event is not None and cancel_event.is_set():
                         self.cancel(run_id)
                     cancelled = self._cancelled(run_id)
                     progress = self._poll(run_id, specs, cancelled=cancelled)
-                    if cancelled:
-                        with connect(self.db_path) as connection:
-                            connection.execute(
-                                "UPDATE nodes SET status='cancelled',error='Cancellation requested' "
-                                "WHERE run_id=? AND status NOT IN ('succeeded','cached')",
-                                (run_id,),
-                            )
-                        break
-                    progress |= self._ready_nodes(run_id, spec, snapshot_dir, inventory)
+                    # A cancel can commit and terminate a child after the flag
+                    # read above. Recheck before scheduling or classifying.
+                    if not cancelled and self._cancelled(run_id):
+                        cancelled = True
+                        progress |= self._poll(run_id, specs, cancelled=True)
+                    if not cancelled:
+                        progress |= self._ready_nodes(run_id, spec, snapshot_dir, inventory)
                     state = self.status(run_id)
-                    if all(node.status in TERMINAL for node in state.nodes.values()):
-                        break
+                    if cancelled or all(node.status in TERMINAL for node in state.nodes.values()):
+                        if cancel_event is not None and cancel_event.is_set():
+                            self.cancel(run_id)
+                        status = self._finalize(run_id)
+                        if status is not None:
+                            break
                     if progress:
                         self._save_state(run_id)
                     time.sleep(0.025)
@@ -1070,20 +1160,6 @@ class Orchestrator:
                     )
                 self._save_state(run_id)
                 raise
-            state = self.status(run_id)
-            status = (
-                "cancelled"
-                if cancelled
-                else "succeeded"
-                if all(node.status in SUCCESS for node in state.nodes.values())
-                else "failed"
-            )
-            with connect(self.db_path) as connection:
-                connection.execute(
-                    "UPDATE runs SET status=?,updated_at=? WHERE run_id=?",
-                    (status, utc_now(), run_id),
-                )
-                event(connection, run_id, "finalized", status=status)
             result = self._save_state(run_id)
             if status == "succeeded":
                 try:
