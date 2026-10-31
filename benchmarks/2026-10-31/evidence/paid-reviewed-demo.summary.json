@@ -1,0 +1,27 @@
+{
+  "fixture": "research-records-v2",
+  "synthetic": true,
+  "status": "succeeded",
+  "inputs_preserved": true,
+  "implementation_unchanged": true,
+  "verification": {
+    "checked_artifacts": 180,
+    "checked_nodes": 14,
+    "errors": [],
+    "run_id": "20261031T124151Z-ea3edbcb03d6",
+    "valid": true
+  },
+  "section_words": {
+    "Abstract": 91,
+    "Introduction": 57,
+    "Methods": 58,
+    "Results": 37,
+    "Discussion": 92,
+    "Limitations": 17,
+    "Conclusion": 108
+  },
+  "references": 0,
+  "scripted_fixture_approvals": 19,
+  "requires_human_review": true,
+  "scientific_validation": "not_established"
+}

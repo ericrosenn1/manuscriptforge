@@ -1,0 +1,21 @@
+{
+  "task_name": "Public historical benchmark evidence",
+  "task_status": "PASS_WITH_LIMITATIONS",
+  "items_requested": 6,
+  "items_processed": 6,
+  "items_succeeded": 6,
+  "items_failed": 0,
+  "validation_status": "ZIP CRC, inventories, original manifests and SHA-256 verified",
+  "audit_status": "Read-only source artifacts; synthetic scope and limitations retained",
+  "repair_cycles": 1,
+  "repairs_performed": [
+    "Corrected ad hoc Windows read encoding to explicit UTF-8; source files never modified"
+  ],
+  "scientific_assumptions_changed": false,
+  "requires_human_review": true,
+  "unresolved_issues": [
+    "Quantity v1 has an invalid instruction contract and must not rank model quality.",
+    "Measurements are historical snapshots, not final-code performance."
+  ],
+  "recommended_next_action": "Review linked evidence; evaluate corrected contracts separately."
+}

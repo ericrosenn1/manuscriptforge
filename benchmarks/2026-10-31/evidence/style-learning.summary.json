@@ -1,0 +1,134 @@
+{
+  "artifact_type": "reviewed_summary_derivative",
+  "title": "Synthetic pairwise preference-ranker learning",
+  "historical_snapshot": true,
+  "final_current_code_performance": false,
+  "synthetic_only": true,
+  "scientific_validation": "NOT_EVALUATED",
+  "display_path_policy": "Portable archive/member references only; originals and manifests preserved byte-for-byte.",
+  "source_reports": [
+    {
+      "archive": "archives/style-learning.zip",
+      "member": "report.json",
+      "file_sha256": "c6169743179608f397c311d0667d4d563e7f7796252a852097e3d6fce1053ef5",
+      "bytes": 60476
+    },
+    {
+      "archive": "archives/style-learning.zip",
+      "member": "model.json",
+      "file_sha256": "f52ddc16fa15f099b35c3fdda20745b501fcb783b16e48425269fd1a33a6a8aa",
+      "bytes": 3323
+    },
+    {
+      "archive": "archives/style-learning.zip",
+      "member": "dataset.json",
+      "file_sha256": "6afa109c18f4da05c42d430c8a81ee445228d048ece2f3566f4fa604f8d9f5dd",
+      "bytes": 117916
+    },
+    {
+      "archive": "archives/style-learning.zip",
+      "member": "MODEL_CARD.md",
+      "file_sha256": "7ab20a44995523f70d00a8cd75dc58b8991c3feb84b69b1f2a126c206e34d0b3",
+      "bytes": 2157
+    },
+    {
+      "archive": "archives/style-learning.zip",
+      "member": "manifest.json",
+      "file_sha256": "9e3568cc64ff70391c98da3b518706ff3a20018957e154a3c78a74a1defbbb63",
+      "bytes": 661
+    }
+  ],
+  "method": "L2 logistic preference ranker on train-scaled stylometric differences; zero intercept",
+  "dataset_id": "synthetic-preference-v1-20261031",
+  "canonical_dataset_sha256": "296c2331449c4287471bab96c281475b4a8f0a99b3a3b37cf7c7ba0e869c8cd1",
+  "training_partition_sha256": "b1da7a478794071523ac4bcd549fd183f13c8ee31a949e167a6325b1986da151",
+  "dataset_file_sha256": "6afa109c18f4da05c42d430c8a81ee445228d048ece2f3566f4fa604f8d9f5dd",
+  "pairs_by_split": {
+    "dev": 24,
+    "test": 24,
+    "train": 72
+  },
+  "independent_groups": {
+    "dev": 6,
+    "test": 6,
+    "train": 18
+  },
+  "synthetic_authors": 1,
+  "holdout_scope": "within-author document groups",
+  "author_holdout_requested": false,
+  "author_overlap_train_test": [
+    "synthetic-author-0"
+  ],
+  "test_labels_used_for_fit": false,
+  "metrics": {
+    "dev": {
+      "accuracy": 0.9166666666666666,
+      "accuracy_group_bootstrap95": [
+        0.8333333333333334,
+        1
+      ],
+      "accuracy_wilson95_iid_approximation": [
+        0.741511978067893,
+        0.9768411847029567
+      ],
+      "brier": 0.05762736098368256,
+      "correct": 22,
+      "coverage": 1.0,
+      "independent_groups": 6,
+      "log_loss": 0.21527464874545535,
+      "pairs": 24
+    },
+    "test": {
+      "accuracy": 1.0,
+      "accuracy_group_bootstrap95": [
+        1,
+        1
+      ],
+      "accuracy_wilson95_iid_approximation": [
+        0.8620237953250198,
+        1.0
+      ],
+      "brier": 0.03331481596188249,
+      "correct": 24,
+      "coverage": 1.0,
+      "independent_groups": 6,
+      "log_loss": 0.15169008979711412,
+      "pairs": 24
+    },
+    "train": {
+      "accuracy": 0.9861111111111112,
+      "accuracy_group_bootstrap95": [
+        0.9583333333333334,
+        1
+      ],
+      "accuracy_wilson95_iid_approximation": [
+        0.9254339785252386,
+        0.9975440481170943
+      ],
+      "brier": 0.034402904345722705,
+      "correct": 71,
+      "coverage": 1.0,
+      "independent_groups": 18,
+      "log_loss": 0.15375522858617563,
+      "pairs": 72
+    }
+  },
+  "constant_train_majority_test_accuracy": 0.4583333333333333,
+  "best_iteration": 78,
+  "iterations": 138,
+  "source_code_reference": {
+    "__init__.py": "0e21eda10f8a75735512b178df475dba9e95c2915e53018aa30bdf90fa49884e",
+    "features.py": "bce26b5be568dfe50ad341b25325eaeb609f18e4527b829e0eda340042e08767",
+    "models.py": "8fdb76b98d922d4e3220ababa54ccd18e5dd4c04878a8db06a89701912a918fc",
+    "ranker.py": "3712b72431e302893ceba0c11037f70b4eb709d66a0da18cb86a85f9c6782689",
+    "reporting.py": "813f4f10ed4b2b3687d28edd95fe6194b58ac4bd7f06c8e69a8379f33fbf69ab",
+    "splits.py": "448be91721b79c39853a96497a3ae60dff8cf0b041e87016c94c28537aa304e0",
+    "synthetic.py": "bc838d7079103561d1fc870c9f52dd2f6e523dbe626ebcb121a02d44976391fd"
+  },
+  "limitations": [
+    "Ranks existing text; does not generate or rewrite prose.",
+    "One synthetic author and six held-out document groups; no real-author efficacy.",
+    "Degenerate [1,1] bootstrap interval does not establish certainty on future authors.",
+    "English-oriented stylometric heuristics and synthetic preferences can fail under distribution shift."
+  ]
+}

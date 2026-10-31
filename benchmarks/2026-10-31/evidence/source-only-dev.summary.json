@@ -1,0 +1,197 @@
+{
+  "artifact_type": "reviewed_summary_derivative",
+  "title": "Basic source-only DEV comparison",
+  "historical_snapshot": true,
+  "final_current_code_performance": false,
+  "synthetic_only": true,
+  "scientific_validation": "NOT_EVALUATED",
+  "display_path_policy": "Portable archive/member references; originals and manifests preserved byte-for-byte.",
+  "source_reports": [
+    {
+      "archive": "archives/source-only-dev.zip",
+      "member": "model-comparison-20261031T121316Z-f3c531ca/results/extraction-v2-20261031T121316Z-55ff061a/summary.json",
+      "file_sha256": "c17f311e795828d4aedba299fa450d02b717730119e0ad4bfe6a7776a4ee8c33",
+      "bytes": 17954
+    },
+    {
+      "archive": "archives/source-only-dev.zip",
+      "member": "model-comparison-20261031T121316Z-f3c531ca/manifest.json",
+      "file_sha256": "c82c4da6df579a62e5f1c64fefb66724ff0cb69f034d29e82ba5ebbe6c6128ec",
+      "bytes": 1737
+    }
+  ],
+  "run_started_at": "2026-10-31T12:13:16.110526+00:00",
+  "run_finished_at": "2026-10-31T12:16:28.902598+00:00",
+  "split": "dev",
+  "protocol_version": "2.0-source-only",
+  "original_run_status": "completed",
+  "models": {
+    "baseline": "gpt-6-luna:low",
+    "candidate": "gpt-6.1-sol:low"
+  },
+  "source_code_reference": {
+    "kind": "Per-file SHA-256; no commit claimed",
+    "file_hashes": {
+      "data/model_pricing.json": "5e3c94a54c0c0390055e3c95a311c43aee2155b6548e011bcf5f0a97e7a9c611",
+      "evaluation/__init__.py": "586ebd2b2ae898195114be02a2e2d01bca2546300dd5cf29abd7bf1f676416e4",
+      "evaluation/extraction_runner.py": "403490e25c96d2eab4671c7e483e29a1d22325584f71d7b0eca5fd68b77524ae",
+      "evaluation/extraction_scoring.py": "6aef47ed23178365d127b3a2c0a946525c316b3e5424fa4f560589a5ef5952d2",
+      "evaluation/models.py": "a79d6de58079eb1b24fe22490d645d0f605efbaa3baebe07548d3e9bcef23417",
+      "evaluation/protocol.py": "1e4d7415738a3df38cc3afca2e75272977a9c2d3f62ce887e08de6e6952b51d3",
+      "evaluation/rescore.py": "3ff39ccd3a209367388b5b46348028122734f4d5281821fe4b0cc44af903e5fb",
+      "evaluation/runner.py": "2c266fd44ec4593003fe2d3a5509fea09a4948cbdfbfec57c1dbe46f187418e4",
+      "evaluation/scoring.py": "70f81459a22e83291f6838d722da29f557941ca17ff3c1e9e3e860d55ce2800f",
+      "evaluation/synthetic.py": "8ebbe182036654a8bc0e0ee4a5ab8eaf1ceac1519bf1c1100260d197b857200b",
+      "llm/__init__.py": "643ec0f26756a7a5a7ffef2ea47418901288fe12bd1737749d85a1bed18e7e0f",
+      "llm/base.py": "da2a856691fb7564d4ad98cab628a847bdfd15cb6cdfc9c21249eee73c203ba9",
+      "llm/budget.py": "e7e54c11bf493e9172110da2260795458ef1fc8922b5c2853312b006f82c7584",
+      "llm/evaluation_adapter.py": "9aaae42a77262618d4040c8a4acd0bf8dffdb044a5c5502f3b7a77f960f31296",
+      "llm/extraction.py": "2290bbd1b25620af8b4c7d8db6d5225f9c82e377cbe7ead06db418881a4cd808",
+      "llm/extraction_adapter.py": "cdb43edecff9b7a04cd607d4e3b6814b4a6fb83bc0b092204570275f52fb70b9",
+      "llm/grounded.py": "87335bc15b9b22b6a2ae8606739e1c8c51bc10fd6d019b4bf0bad065518925de",
+      "llm/mock_provider.py": "16d3c122e9e8a8c4646f80a17aa186655775e237019ef1d6a71e8ea283fa8e33",
+      "llm/openai_provider.py": "655031c347393c13676d2ea16a4b1f9411640e39e90df5c4f0d2bc6553b262e4",
+      "llm/prompts.py": "68adb7eae931af45adb1e8b9a2a81ea68a7b9c1581c039455fd42c4c89a25599",
+      "research/comparison.py": "31855be82b7be3da30459ee8864b9a13f663520d22c5fe366d8d143d27f29e90",
+      "research/providers.py": "0bd28fa2bae695862f84758dc61f32e61285aab958808e1a7270399b72c5c830"
+    }
+  },
+  "source_files_changed_during_run": [],
+  "dataset": {
+    "dataset_id": "original-functional-grounding",
+    "revision": "1.0",
+    "case_counts": {
+      "dev": 48,
+      "test": 48,
+      "train": 144
+    },
+    "sources": 120,
+    "facts": 150,
+    "recorded_canonical_dataset_sha256": "ea3831af74fc19bccf454d371b3287bf61fcb6ddc7a508c9d1c81aeaaa93c5ea",
+    "recomputed_canonical_dataset_sha256": "ea3831af74fc19bccf454d371b3287bf61fcb6ddc7a508c9d1c81aeaaa93c5ea",
+    "canonical_identity_matches_archived_dataset": true,
+    "dataset_file_sha256": "b1e550ec23c3da453f070ff3b5eaf953f00994df1a3996d131bd4444d96756cc",
+    "canonical_hash_method": "SHA-256 of UTF-8 sorted compact JSON of the typed model, default ensure_ascii=True"
+  },
+  "interpretation": "Both models passed all 48 basic DEV cases. This small synthetic suite is at ceiling; it does not establish superiority, real-world reliability, or scientific validity.",
+  "metrics": {
+    "baseline": {
+      "assertions_emitted": 36,
+      "cases": 48,
+      "complete_case_rate": 1.0,
+      "complete_case_wilson95": [
+        0.9258998703338824,
+        0.9999999999999999
+      ],
+      "execution_failures": 0,
+      "expected_facts": 36,
+      "irrelevant_supported_tuples": 0,
+      "limitation": "Synthetic tuple/source exactness and optional quote consistency; not narrative entailment or scientific acceptance. Case-level intervals assume independent cases.",
+      "quote_grounding_statuses": {
+        "not_applicable": 12,
+        "pass": 36
+      },
+      "required_abstention_accuracy": 1.0,
+      "responsive_precision_micro": 1.0,
+      "responsive_recall_micro": 1.0,
+      "retrieval_metrics": "not_applicable",
+      "scientific_validation": "NOT_EVALUATED",
+      "tuple_case_rate": 1.0,
+      "unsupported_tuples": 0,
+      "wrong_sources": 0,
+      "wrong_units": 0,
+      "wrong_values": 0
+    },
+    "candidate": {
+      "assertions_emitted": 36,
+      "cases": 48,
+      "complete_case_rate": 1.0,
+      "complete_case_wilson95": [
+        0.9258998703338824,
+        0.9999999999999999
+      ],
+      "execution_failures": 0,
+      "expected_facts": 36,
+      "irrelevant_supported_tuples": 0,
+      "limitation": "Synthetic tuple/source exactness and optional quote consistency; not narrative entailment or scientific acceptance. Case-level intervals assume independent cases.",
+      "quote_grounding_statuses": {
+        "not_applicable": 12,
+        "pass": 36
+      },
+      "required_abstention_accuracy": 1.0,
+      "responsive_precision_micro": 1.0,
+      "responsive_recall_micro": 1.0,
+      "retrieval_metrics": "not_applicable",
+      "scientific_validation": "NOT_EVALUATED",
+      "tuple_case_rate": 1.0,
+      "unsupported_tuples": 0,
+      "wrong_sources": 0,
+      "wrong_units": 0,
+      "wrong_values": 0
+    }
+  },
+  "paired": {
+    "bootstrap95": [
+      0,
+      0
+    ],
+    "bootstrap_repetitions": 2000,
+    "bootstrap_seed": 20261031,
+    "bootstrap_unit": "independent source group",
+    "delta": 0,
+    "improved": 0,
+    "independent_groups": 6,
+    "interpretation": "Paired functional case correctness; synthetic results do not establish scientific or author-style validity.",
+    "mcnemar_exact_p": 1.0,
+    "paired_cases": 48,
+    "regressed": 0,
+    "unchanged": 48
+  },
+  "resources": {
+    "baseline": {
+      "cost_usd": {
+        "known_total": 0.0066794,
+        "missing_cases": 0,
+        "observed_cases": 48
+      },
+      "elapsed_seconds_median": 1.8416219499777071,
+      "elapsed_seconds_total": 91.29958280012943,
+      "input_tokens": {
+        "known_total": 34374,
+        "missing_cases": 0,
+        "observed_cases": 48
+      },
+      "output_tokens": {
+        "known_total": 6484,
+        "missing_cases": 0,
+        "observed_cases": 48
+      }
+    },
+    "candidate": {
+      "cost_usd": {
+        "known_total": 0.111098,
+        "missing_cases": 0,
+        "observed_cases": 48
+      },
+      "elapsed_seconds_median": 2.0706699499860406,
+      "elapsed_seconds_total": 100.91088520002086,
+      "input_tokens": {
+        "known_total": 34374,
+        "missing_cases": 0,
+        "observed_cases": 48
+      },
+      "output_tokens": {
+        "known_total": 4235,
+        "missing_cases": 0,
+        "observed_cases": 48
+      }
+    }
+  },
+  "cost_limitation": "Standard-rate token estimates, not invoices; ledger snapshots may include concurrent runs.",
+  "limitations": [
+    "Development split only; held-out testing not represented here.",
+    "Only six independent source groups; case-level Wilson intervals assume independent cases.",
+    "Gold facts were withheld from model inputs; evaluator uses gold for scoring.",
+    "No retrieval ranking or narrative entailment assessment."
+  ]
+}

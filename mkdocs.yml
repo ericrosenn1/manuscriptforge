@@ -9,7 +9,9 @@ theme:
   name: readthedocs
 nav:
   - Overview: index.md
+  - Release notes: docs/release-0.2.0.md
   - Research workflow: docs/research-workflow.md
+  - Author claim review: docs/claim-review.md
   - Fact proposals: docs/fact-proposals.md
   - Lexical retrieval: docs/lexical-retrieval.md
   - Evaluation protocol: docs/evaluation.md

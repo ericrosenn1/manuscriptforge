@@ -59,7 +59,7 @@ manuscriptforge = "manuscriptforge.cli:app"
 packages = ["manuscriptforge"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/.github", "/pyproject.toml", "/README.md", "/CHANGELOG.md", "/CITATION.cff", "/.gitignore", "/.gitattributes", "/.env.example"]
+include = ["/manuscriptforge", "/tests", "/examples", "/docs", "/scripts", "/benchmarks", "/.github", "/pyproject.toml", "/mkdocs.yml", "/README.md", "/CHANGELOG.md", "/CITATION.cff", "/.gitignore", "/.gitattributes", "/.env.example"]
 
 [tool.ruff]
 line-length = 100

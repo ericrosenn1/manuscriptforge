@@ -1,6 +1,8 @@
-# Quantities v1 dataset card
+# Quantities v1 and v1.1 dataset card
 
 [quantities-v1.json](../manuscriptforge/data/benchmarks/quantities-v1.json) is an original synthetic source-only extraction benchmark. It contains invented nonmedical instrument, software, and engineering records. None of its values are empirical research results.
+
+[quantities-v1.1.json](../manuscriptforge/data/benchmarks/quantities-v1.1.json) corrects only the public query contract and dataset version metadata. The source records, reference facts, case IDs, partitions, expected answers, abstention rules, and scoring endpoints are identical to v1. The original file and its recorded model responses remain preserved.
 
 ## Size and split
 
@@ -20,6 +22,22 @@ Families are grouped across all their strata. The deterministic partition uses t
 ## Literal ground truth
 
 Queries name a subject and predicate and request preservation of signs, units, qualifiers, and intervals. They contain no expected numerical value. Reference facts and source labels are retained for post-hoc evaluation and must not be passed to a source-only candidate.
+
+## Query contract and validity
+
+The original v1 query asked for units inside `value`, conflicting with the separate `unit` field and gold representation. The runner's inherited count/duration hints could also contradict the exact requested predicate. Its first paid development run is therefore retained as a **contract diagnostic**, not a comparative model-quality result. The [archived diagnostic summary](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v1-invalid-contract.summary.json) preserves that designation. Raw-response review found faithful numerical content alongside representation and instruction conflicts; strict pass-rate differences from that run do not establish model superiority or inferiority.
+
+Version 1.1 makes the contract explicit: return the requested subject and predicate exactly; keep units only in `unit`; preserve numeric signs, bracketed interval expressions, inequalities and approximation words in `value`; exclude descriptive measurement labels. When a unique numeric quantity is absent, return empty facts and explain the gap in `unresolved_questions`. Source instructions remain untrusted data. No gold numerical examples are inserted into the query.
+
+Use `scoring_version="2.1-quantities", label_hints=""` with the source-only runner. The v1.1 dataset rejects inherited label hints or a different scoring version before any model call. The exact hints, query hashes, dataset revision, runtime versions, and implementation hashes are recorded. Any comparison between v1 and v1.1 changes the input contract and cannot be described as a model improvement.
+
+## Locked v1.1 experiment
+
+Both models completed [84/84 development cases](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-dev.summary.json). The [pre-test selection](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-selection.summary.json) chose Luna using the lower measured token cost as the tie-break. With the configuration locked, [test results](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-test.summary.json) were Luna 83/84 and Sol 84/84. One Luna response omitted a negative sign; source validation rejected it. No incorrect tuple was accepted in the test set, and the pre-test model selection was not changed.
+
+The paired Sol-minus-Luna difference was 1.19 percentage points, with a group-bootstrap 95% interval of 0–3.57 points over six independent test families. The 84 cases are correlated and share controlled templates. These results describe this synthetic extraction contract; the single-case difference does not establish model superiority or performance on natural research text.
+
+## Literal examples
 
 Representative lexemes from the first family are:
 
@@ -51,8 +69,9 @@ The scalar equivalence rule maps ASCII hyphen-minus and U+2212 minus, permits wh
 
 ```bash
 python scripts/generate_quantity_benchmark.py --check
+python scripts/generate_quantity_benchmark_v11.py --check
 ```
 
-The generator checks the existing file against deterministic regeneration and refuses to overwrite changed data. The stored dataset includes source hashes and precise source-to-fact links. Its canonical dataset hash at initial construction is `33b13bae58b175c0edc1c88dbfeaeade0f69a6bb6fd9eb71efc756f6c4709636`.
+Both generators check existing data and refuse to overwrite changed files. The stored datasets include source hashes and precise source-to-fact links. Canonical dataset hashes are `33b13bae58b175c0edc1c88dbfeaeade0f69a6bb6fd9eb71efc756f6c4709636` for v1 and `e7ec83fc058fa80a93a34b7263f4f2b0540c501e864130f36e66792f4a276a14` for v1.1. The commands also report the actual on-disk byte hash; line-ending differences can change that hash without changing the canonical dataset.
 
 Use this collection for controlled extraction, attribution, abstention, and parser regression tests. It does not establish scientific validity, free-form entailment, domain expertise, real-author style quality, or performance on naturally occurring research documents. Any model comparison should report per-stratum results and compatibility failures separately.

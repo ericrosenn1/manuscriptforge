@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from manuscriptforge.cli import app
@@ -53,9 +54,18 @@ def test_review_is_source_bound_and_invalidates_only_claim_descendants(synthetic
     assert updated["needs_human_review"] is False
 
 
-def test_review_command_requires_explicit_decision_and_author(synthetic_project):
-    result = CliRunner().invoke(
-        app, ["research", "review-claim", str(synthetic_project), "run", "claim"]
-    )
-    assert result.exit_code != 0
-    assert "--decision" in result.output or "--reviewer" in result.output
+@pytest.mark.parametrize("missing", ["decision", "support", "reviewer", "reason"])
+def test_review_command_requires_explicit_decision_and_author(synthetic_project, missing):
+    values = {
+        "decision": "approve",
+        "support": "direct",
+        "reviewer": "Test",
+        "reason": "Evidence reviewed.",
+    }
+    arguments = ["research", "review-claim", str(synthetic_project), "run", "claim"]
+    for name, value in values.items():
+        if name != missing:
+            arguments.extend([f"--{name}", value])
+    result = CliRunner().invoke(app, arguments, color=True)
+    assert result.exit_code == 2  # Click rejects missing options before any command code.
+    assert not (synthetic_project / "claim_reviews.jsonl").exists()

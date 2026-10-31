@@ -7,7 +7,7 @@ ManuscriptForge is a Python research-writing engine with reproducible execution,
 [![Python CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml)
 [![Studio CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/studio.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/studio.yml)
 
-**[Research workflow](docs/research-workflow.md)** · **[Evaluation](docs/evaluation.md)** · **[0.2.0 release notes](docs/release-0.2.0.md)** · **[Architecture](docs/architecture.md)** · **[Optional Studio](docs/studio.md)**
+**[Research workflow](docs/research-workflow.md)** · **[Evaluation](docs/evaluation.md)** · **[Benchmark evidence](https://github.com/ericrosenn1/manuscriptforge/tree/main/benchmarks/2026-10-31)** · **[0.2.0 release notes](docs/release-0.2.0.md)** · **[Optional Studio](docs/studio.md)**
 
 ## What it does
 
@@ -16,6 +16,7 @@ ManuscriptForge is a Python research-writing engine with reproducible execution,
 | Reproducible execution | A trusted dependency graph runs isolated stages with durable state, bounded retries, cancellation, content-addressed reuse, and hash verification. |
 | Document and evidence intake | Reads local text, Markdown, DOCX, text-based PDFs, tables, and citation records. Source hashes and locations accompany extracted material. |
 | Grounded candidate drafting | A typed model boundary checks source IDs, claim linkage, numerical consistency, citation identifiers, style-only copying, and output limits. Rejected output cannot silently become an accepted section. |
+| Author claim review | Explicit, fingerprint-bound approvals and rejections preserve original evidence, detect stale decisions, and invalidate only affected stages. Models cannot approve their own claims. [Review guide](docs/claim-review.md). |
 | Local retrieval | Inspectable BM25 or Jaccard ranking, metadata filters, optional diversity selection, and validated serialized indexes. |
 | Learned style preferences | A NumPy logistic ranker learns from explicit labeled passage pairs. It uses stylometric features, grouped holdouts, and train-only scaling; ranking leaves text unchanged. |
 | Evaluation and handoff | Paired held-out functional tests, abstention and calibration measurements, latency/usage records, immutable artifacts, and a verified manuscript bundle. |
@@ -25,7 +26,7 @@ flowchart LR
     I[Project inputs] --> V[Validate and snapshot]
     V --> N[Ingest]
     N --> P[Style profile]
-    N --> C[Claim registry]
+    N --> C[Claims and author decisions]
     P --> S[Section workers]
     C --> S
     S --> A[Assemble candidate]
@@ -50,7 +51,7 @@ python -m manuscriptforge.cli research plan ../manuscriptforge-demo
 python -m manuscriptforge.cli research run ../manuscriptforge-demo --provider mock
 ```
 
-In Windows PowerShell, use `.\.venv\Scripts\python.exe` in place of `python` without activating the environment. The demo is an original synthetic nonmedical project; its draft and audit findings are for inspection, not scientific acceptance. No API key is required for the mock workflow.
+In Windows PowerShell, use `.\.venv\Scripts\python.exe` in place of `python` without activating the environment. The v2 research demo is an original synthetic nonmedical project with explicitly scripted fixture approvals; its draft and audit findings are for inspection, not scientific acceptance. No API key is required for the mock workflow. For your own data, use the [author claim-review workflow](docs/claim-review.md).
 
 Use the run ID printed by `research run`:
 
@@ -69,12 +70,16 @@ The evaluation suite preserves negative and inconclusive results rather than tre
 | Check | Observed scope | Interpretation |
 | --- | --- | --- |
 | Adversarial regression probes | The pinned pre-campaign source passed 0/11 selected invariants; the repaired implementation passed 11/11. | Targeted software corrections, not a language-model quality score. The [reproducible probe script](scripts/benchmark_invariants.py) runs against either source tree. |
-| Basic source-only model comparison | Luna and Sol each passed 48/48 synthetic development cases; paired difference 0. | Source-quote, tuple and abstention checks across six independent families. Development-set evidence, not scientific validation. |
+| [Locked quantity evaluation](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-test.summary.json) | Development: both models 84/84. Test: Luna 83/84, Sol 84/84; one Luna sign error was rejected. | Synthetic source-quote, tuple and abstention checks across six test families. The small difference does not establish model superiority. |
 | Synthetic source retrieval | BM25 and Jaccard showed no relevance difference on the controlled held-out collection. | A null relevance finding is retained. Timing is specific to the synthetic fixture and hardware. |
 | Learned preference mechanism | 24/24 held-out synthetic pairs versus 11/24 for the training-majority baseline, across six held-out document groups. | Labels come from a disclosed latent rule. This does not establish real-author efficacy. |
 | Model-generated prose | Structured source checks and explicit review flags. | Factual entailment, scientific conclusions, and author preference require separate validation. |
 
-The [release notes](docs/release-0.2.0.md) separate model results, local workflow timings, lexical speed measurements, and the dated budget snapshot. See the [evaluation protocol](docs/evaluation.md) and [learning model notes](docs/learning.md). Legacy style scores are labeled diagnostic; absent evidence produces null or inconclusive results. No universal writing-quality or hallucination-free claim is made.
+The [release notes](docs/release-0.2.0.md) separate model results, local workflow timings, lexical speed measurements, and the dated budget snapshot. The [benchmark package](https://github.com/ericrosenn1/manuscriptforge/tree/main/benchmarks/2026-10-31) includes original reports, downloadable archives, and verification manifests. These are historical measured snapshots, not a performance claim for later code. See the [evaluation protocol](docs/evaluation.md) and [learning model notes](docs/learning.md). Legacy style scores are labeled diagnostic; absent evidence produces null or inconclusive results. No universal writing-quality or hallucination-free claim is made.
+
+![Measured workflow and retrieval performance on synthetic inputs](docs/assets/research-performance-20261031.png)
+
+The [timing records and reproduction commands](benchmarks/2026-10-31/README.md) identify the workload, implementation snapshot, and limits of these local measurements.
 
 ## Data and model access
 

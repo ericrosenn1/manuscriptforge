@@ -32,7 +32,7 @@ run_dir = run_comparison(
 )
 ```
 
-The evaluation runner itself opens no model connection. A caller may provide a deterministic adapter or an explicitly configured model provider. Paid calls require the campaign's budget gate and ledger.
+The evaluation runner itself opens no model connection. A caller may provide a deterministic adapter or an explicitly configured model provider. Paid calls require the configured budget gate and shared ledger.
 
 ## Scores and denominators
 
@@ -83,12 +83,22 @@ Complete-case results require responsive tuple matching and successful source-qu
 
 ## Quantity protocol 2.1 and response diagnostics
 
-Use `scoring_version="2.1-quantities"` explicitly for the [quantity dataset](quantity-benchmark.md). The default remains `"2.0-source-only"`. Version 2.1 compares whole finite scalar values numerically, including Unicode and spaced unary minus. Units remain case-sensitive; interval and qualifier strings retain literal comparison. The dataset's labels and existing reports are not rewritten. Summaries reject mixed scoring versions.
+Use `scoring_version="2.1-quantities"` explicitly for the [quantity dataset](quantity-benchmark.md). The corrected v1.1 query revision also requires `label_hints=""` (CLI `--no-label-hints`); legacy defaults remain unchanged for earlier datasets. Version 2.1 compares whole finite scalar values numerically, including Unicode and spaced unary minus. Units remain case-sensitive; interval and qualifier strings retain literal comparison. The dataset's labels and existing reports are not rewritten. Summaries reject mixed scoring versions. The original v1 quantity run is a contract diagnostic because its query wording conflicted with field separation and exact predicate naming; its strict pass rates are not comparative model-quality evidence.
 
 The extraction guard has its own version. `FactExtractionCandidate(..., quantity_protocol="2.1")` uses the repaired quantity guard; `"2.0"` supports explicit historical comparisons. Each row records the actual guard version separately from its scoring version. Independent quote checks follow the guard version recorded in the extraction result; an absent version in an old result is identified as legacy 2.0. Configured guard versions, scoring version, and implementation hashes are recorded in the protocol.
+
+Grounded prose has an additional, bounded `table_binding_checks` report. It derives bindings only from explicit ingested row metadata, not guessed facts from rendered table text. A supported row/value mismatch rejects a candidate. Read `status`, `evaluated_mentions`, and `review_reasons` together: `not_evaluated` is not a successful field association, and the overall grounding `valid` flag does not imply complete table coverage. Exact field assignments can be checked against one column; ordinary labeled clauses may check only row membership. Pronouns, nonunique labels, compound subjects, comparative clauses, field aliases, and spelled-out numbers are outside this check. The row checker does not infer units; quantitative unit checks remain a separate constraint.
+
+Narrative quantity comparison allows a declared list of common count nouns to follow a number without becoming physical units. It does not certify that “records,” “rows,” or another counted entity is semantically correct. Explicit physical/compound units remain constrained, and structured fact extraction continues to require bound units. These checks and the row report supplement source consistency; they do not establish free-form entailment.
 
 For local diagnosis, `run_extraction_comparison(..., capture_policy="failures")` saves raw model responses for cases that fail the complete-case check. `"all"` retains every response and `"off"` is the default. Supported providers capture exact returned text before JSON/schema and source-guard validation, so a schema failure can be distinguished from a correct answer rejected by a guard. This capture does not repair or reclassify an answer.
 
 Response sidecars contain text, response/model identifiers, schema identity, error/refusal/incomplete metadata, byte counts and hashes. They do not contain request prompts, credentials or HTTP headers. Returned text may itself quote source material, so these artifacts stay in the local evaluation output unless deliberately reviewed for publication. The recorder is cleared per request. Missing text, an explicitly empty response, and truncated capture are distinct states. The default capture limit is one million UTF-8 bytes per text field; truncation retains the full received text's hash and original length while marking the stored prefix. Providers without this facility are labeled unavailable.
 
 Sidecar paths and hashes are referenced from incremental JSONL rows and included in the final manifest. Capture policy is recorded in both protocol and manifest. None of these diagnostics require an additional model call.
+
+## Locked quantity comparison
+
+Under the corrected v1.1 query contract, both models passed 84/84 development cases. The [selection lock](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-selection.summary.json) chose Luna before test using the lower development token-cost estimate to break the tie. The [locked test](https://github.com/ericrosenn1/manuscriptforge/blob/main/benchmarks/2026-10-31/evidence/quantity-v11-test.summary.json) then recorded Luna 83/84 and Sol 84/84; the one Luna negative-sign error was rejected, and no incorrect tuple was accepted. The report labels `baseline` and `candidate` refer to Luna and Sol, not to an assumed quality order.
+
+The paired Sol-minus-Luna complete-case difference was 1.19 percentage points. Its group-bootstrap 95% interval was 0–3.57 points, with only six independent test families behind 84 correlated cases. Keep the pre-test selection unchanged and treat this as a bounded synthetic result, not evidence that one model is generally superior. The original v1 invalid-contract outcomes remain separate.

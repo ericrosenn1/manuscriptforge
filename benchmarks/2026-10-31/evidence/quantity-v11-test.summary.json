@@ -1,0 +1,464 @@
+{
+  "artifact_type": "reviewed_summary_derivative",
+  "title": "Corrected quantity v1.1 TEST",
+  "synthetic_only": true,
+  "scientific_validation": "NOT_EVALUATED",
+  "split": "test",
+  "historical_snapshot": true,
+  "final_current_code_performance": false,
+  "source_reports": [
+    {
+      "archive": "archives/quantity-v11-test.zip",
+      "member": "model-comparison-20261031T123727Z-1cee983b/results/extraction-v2.1-20261031T123728Z-3641d953/summary.json",
+      "file_sha256": "4849738581f6812e113ce323c5ab3ea294a004e30f6e96207211e5f870e819ba",
+      "bytes": 29548
+    },
+    {
+      "archive": "archives/quantity-v11-test.zip",
+      "member": "model-comparison-20261031T123727Z-1cee983b/manifest.json",
+      "file_sha256": "9be6722bea62a78cbbed2a20dc61ca25b5d7ae34b99847ca612138b4bd754734",
+      "bytes": 40350
+    }
+  ],
+  "run_started_at": "2026-10-31T12:37:27.912950+00:00",
+  "run_finished_at": "2026-10-31T12:42:03.923141+00:00",
+  "run_status": "completed_with_failures",
+  "dataset": {
+    "dataset_id": "original-quantities-v1.1",
+    "revision": "1.1",
+    "canonical_dataset_sha256": "e7ec83fc058fa80a93a34b7263f4f2b0540c501e864130f36e66792f4a276a14",
+    "file_sha256": "be8f063450e83b1b826640e3530b60cac61a73da65778e749a393862e7a69d58",
+    "case_counts": {
+      "dev": 84,
+      "test": 84,
+      "train": 252
+    },
+    "sources": 540,
+    "facts": 480
+  },
+  "protocol_version": "2.1-quantities",
+  "models": {
+    "baseline": "gpt-6-luna:low",
+    "candidate": "gpt-6.1-sol:low"
+  },
+  "metrics": {
+    "baseline": {
+      "assertions_emitted": 71,
+      "cases": 84,
+      "complete_case_rate": 0.9880952380952381,
+      "complete_case_wilson95": [
+        0.935604562492286,
+        0.9978954169124508
+      ],
+      "execution_failures": 1,
+      "expected_facts": 72,
+      "extraction_guard_versions": {
+        "2.1": 84
+      },
+      "irrelevant_supported_tuples": 0,
+      "limitation": "Synthetic tuple/source exactness and optional quote consistency; not narrative entailment or scientific acceptance. Case-level intervals assume independent cases.",
+      "protocol_version": "2.1-quantities",
+      "quote_grounding_statuses": {
+        "not_applicable": 13,
+        "pass": 71
+      },
+      "required_abstention_accuracy": 1.0,
+      "responsive_precision_micro": 1.0,
+      "responsive_recall_micro": 0.9861111111111112,
+      "retrieval_metrics": "not_applicable",
+      "scientific_validation": "NOT_EVALUATED",
+      "tuple_case_rate": 0.9880952380952381,
+      "unsupported_tuples": 0,
+      "wrong_sources": 0,
+      "wrong_units": 0,
+      "wrong_values": 0
+    },
+    "candidate": {
+      "assertions_emitted": 72,
+      "cases": 84,
+      "complete_case_rate": 1.0,
+      "complete_case_wilson95": [
+        0.95626827158534,
+        0.9999999999999999
+      ],
+      "execution_failures": 0,
+      "expected_facts": 72,
+      "extraction_guard_versions": {
+        "2.1": 84
+      },
+      "irrelevant_supported_tuples": 0,
+      "limitation": "Synthetic tuple/source exactness and optional quote consistency; not narrative entailment or scientific acceptance. Case-level intervals assume independent cases.",
+      "protocol_version": "2.1-quantities",
+      "quote_grounding_statuses": {
+        "not_applicable": 12,
+        "pass": 72
+      },
+      "required_abstention_accuracy": 1.0,
+      "responsive_precision_micro": 1.0,
+      "responsive_recall_micro": 1.0,
+      "retrieval_metrics": "not_applicable",
+      "scientific_validation": "NOT_EVALUATED",
+      "tuple_case_rate": 1.0,
+      "unsupported_tuples": 0,
+      "wrong_sources": 0,
+      "wrong_units": 0,
+      "wrong_values": 0
+    }
+  },
+  "paired": {
+    "bootstrap95": [
+      0,
+      0.03571428571428571
+    ],
+    "bootstrap_repetitions": 2000,
+    "bootstrap_seed": 20261031,
+    "bootstrap_unit": "independent source group",
+    "delta": 0.011904761904761904,
+    "improved": 1,
+    "independent_groups": 6,
+    "interpretation": "Paired functional case correctness; synthetic results do not establish scientific or author-style validity.",
+    "mcnemar_exact_p": 1.0,
+    "paired_cases": 84,
+    "regressed": 0,
+    "unchanged": 83
+  },
+  "resources": {
+    "baseline": {
+      "cost_usd": {
+        "known_total": 0.0127794,
+        "missing_cases": 1,
+        "observed_cases": 83
+      },
+      "elapsed_seconds_median": 1.4498447999940254,
+      "elapsed_seconds_total": 125.41766110027675,
+      "input_tokens": {
+        "known_total": 79429,
+        "missing_cases": 1,
+        "observed_cases": 83
+      },
+      "output_tokens": {
+        "known_total": 9673,
+        "missing_cases": 1,
+        "observed_cases": 83
+      }
+    },
+    "candidate": {
+      "cost_usd": {
+        "known_total": 0.237864,
+        "missing_cases": 0,
+        "observed_cases": 84
+      },
+      "elapsed_seconds_median": 1.7112429000553675,
+      "elapsed_seconds_total": 147.66603740060236,
+      "input_tokens": {
+        "known_total": 80357,
+        "missing_cases": 0,
+        "observed_cases": 84
+      },
+      "output_tokens": {
+        "known_total": 7715,
+        "missing_cases": 0,
+        "observed_cases": 84
+      }
+    }
+  },
+  "generic_label_hints": "",
+  "predictor_metadata": {
+    "baseline": {
+      "cost_kind": "Standard-rate token estimate, not an invoice. Shared ledger reserves conservative bounds including failures.",
+      "gold_facts_used": false,
+      "implementation_sha256": {
+        "extraction.py": "5d408fc4fd76029160bed2493516872ba4ecc93f7386c62eed4660ab0a379850",
+        "extraction_adapter.py": "d7c6efbd4d2462eda0cb986aa2171a16ddae15924e5587bc089e3c382cb54cc2"
+      },
+      "max_facts": 20,
+      "max_output_tokens": 2048,
+      "method": "source-only-quote-anchored-proposals",
+      "model": "gpt-6-luna",
+      "price_source": {
+        "conditions": "USD per million tokens; standard tier, text-only Responses without tools or pro mode. Conservative reservations include the highest documented cache-write rate. Refresh prices before a later paid campaign.",
+        "models": {
+          "gpt-6-astra": {
+            "cached_input": "1.00",
+            "input": "10.00",
+            "max_cache_write": "25.00",
+            "output": "50.00"
+          },
+          "gpt-6-luna": {
+            "cached_input": "0.01",
+            "input": "0.10",
+            "max_cache_write": "0.25",
+            "output": "0.50"
+          },
+          "gpt-6.1-sol": {
+            "cached_input": "0.10",
+            "input": "2.00",
+            "max_cache_write": "5.00",
+            "output": "10.00"
+          },
+          "gpt-6.1-terra": {
+            "cached_input": "0.05",
+            "input": "1.00",
+            "max_cache_write": "2.50",
+            "output": "5.00"
+          }
+        },
+        "schema_version": 1,
+        "source": "https://developers.openai.com/api/docs/pricing",
+        "verified_on": "2026-10-31"
+      },
+      "quantity_protocol": "2.1",
+      "reasoning_effort": "low",
+      "request_timeout_seconds": 90,
+      "retrieval_ranking": "not performed",
+      "scientific_acceptance": "requires human review"
+    },
+    "candidate": {
+      "cost_kind": "Standard-rate token estimate, not an invoice. Shared ledger reserves conservative bounds including failures.",
+      "gold_facts_used": false,
+      "implementation_sha256": {
+        "extraction.py": "5d408fc4fd76029160bed2493516872ba4ecc93f7386c62eed4660ab0a379850",
+        "extraction_adapter.py": "d7c6efbd4d2462eda0cb986aa2171a16ddae15924e5587bc089e3c382cb54cc2"
+      },
+      "max_facts": 20,
+      "max_output_tokens": 2048,
+      "method": "source-only-quote-anchored-proposals",
+      "model": "gpt-6.1-sol",
+      "price_source": {
+        "conditions": "USD per million tokens; standard tier, text-only Responses without tools or pro mode. Conservative reservations include the highest documented cache-write rate. Refresh prices before a later paid campaign.",
+        "models": {
+          "gpt-6-astra": {
+            "cached_input": "1.00",
+            "input": "10.00",
+            "max_cache_write": "25.00",
+            "output": "50.00"
+          },
+          "gpt-6-luna": {
+            "cached_input": "0.01",
+            "input": "0.10",
+            "max_cache_write": "0.25",
+            "output": "0.50"
+          },
+          "gpt-6.1-sol": {
+            "cached_input": "0.10",
+            "input": "2.00",
+            "max_cache_write": "5.00",
+            "output": "10.00"
+          },
+          "gpt-6.1-terra": {
+            "cached_input": "0.05",
+            "input": "1.00",
+            "max_cache_write": "2.50",
+            "output": "5.00"
+          }
+        },
+        "schema_version": 1,
+        "source": "https://developers.openai.com/api/docs/pricing",
+        "verified_on": "2026-10-31"
+      },
+      "quantity_protocol": "2.1",
+      "reasoning_effort": "low",
+      "request_timeout_seconds": 90,
+      "retrieval_ranking": "not performed",
+      "scientific_acceptance": "requires human review"
+    }
+  },
+  "evaluator_source_sha256": {
+    "evaluation/__init__.py": "586ebd2b2ae898195114be02a2e2d01bca2546300dd5cf29abd7bf1f676416e4",
+    "evaluation/extraction_runner.py": "106080684a5c8c5ab0e03019178a3b18a107251221351f9eac14d06f55427131",
+    "evaluation/extraction_scoring.py": "53d6a08f25d35487f5fbd742dc7e2732e0df734fb24788e482f179438424fae3",
+    "evaluation/models.py": "a79d6de58079eb1b24fe22490d645d0f605efbaa3baebe07548d3e9bcef23417",
+    "evaluation/protocol.py": "1e4d7415738a3df38cc3afca2e75272977a9c2d3f62ce887e08de6e6952b51d3",
+    "evaluation/rescore.py": "3ff39ccd3a209367388b5b46348028122734f4d5281821fe4b0cc44af903e5fb",
+    "evaluation/runner.py": "2c266fd44ec4593003fe2d3a5509fea09a4948cbdfbfec57c1dbe46f187418e4",
+    "evaluation/scoring.py": "8ec559f2584c45f0237ea37e451a67406c963dad3e1d398e620d5d6765acfabc",
+    "evaluation/synthetic.py": "8ebbe182036654a8bc0e0ee4a5ab8eaf1ceac1519bf1c1100260d197b857200b",
+    "evidence/quantities.py": "21894e953d33065a6415fe4d302dfba78be5380b48163969873bfde61b79cf55",
+    "llm/extraction.py": "5d408fc4fd76029160bed2493516872ba4ecc93f7386c62eed4660ab0a379850",
+    "llm/openai_provider.py": "adbbe0ef61c77cbc0e8254762255eae381fd391fdc2c490b833fa52d8b1a6961",
+    "llm/response_capture.py": "8359d614fdb10fffb87b071dd9cf17c5cf75f0e24474ea19bd60a292fd51d343"
+  },
+  "source_code_reference": {
+    "__init__.py": "8b6a6679d8c43ff818eab5ced0a2550bad1554179badbefa9c6e650408b5778e",
+    "app.py": "1e3d6a050e0f617c5e85f6239ed13a647716f1d0c4848417b12a4666c59ee9e8",
+    "audit/__init__.py": "ab74f48895ccfc262117c91ff81e7b41b1923a35ab20ebfc533eac255e57eaa7",
+    "audit/citation_audit.py": "4b39e6aa642212cf88e8b09ea7a91149db76a52a1e9e55d2ef51f9ed33035eae",
+    "audit/claim_audit.py": "e605e2d114bf8649fdc9bbeab54ab51ade25c244508ce17cfa1bea38a179313b",
+    "audit/journal_audit.py": "6919483ce479244e0482636d0dffcc6db1818148352f59056a3b76311ea0cd21",
+    "audit/no_invention_audit.py": "f6ef40ccd47d1407083f4ea7365b89a67118a217aa2a69c5b4def626fc41c9eb",
+    "audit/numeric_consistency.py": "c541265bfc91bfbde6c58d9c416f3ac2c86d53875fd081e9596c47894049862e",
+    "audit/overclaiming_audit.py": "7804622ee660f86d3894396b04a1981acd6cb29e87ff9efc2783744788e77fb6",
+    "audit/reproducibility_audit.py": "849cf32709676a7a8daf1e612847bd64f07d7c6bbdc04677e829c65402d960c3",
+    "audit/reviewer_simulator.py": "26147bc1113a3e1b0308b8c237cc0aa9ca01caa38384e7c5495f77aa9528e166",
+    "audit/style_audit.py": "0b29e1b57096c8c80f74a3125e8874d0260430735de415c253407cf2912d4efd",
+    "cli.py": "78e6d8c1ff0e77f4dfb2ee973fee006e8b15daae32949b45a71c3593734834e3",
+    "config.py": "ef8c8154f7c446d46a02ae8733ac25a9bc54f195216d2167aa1d7e47ba2dbb95",
+    "data/benchmarks/quantities-v1.1.json": "5df7a217af3891f338b7926009cae7afc0d00fd5f130b5839da9b817f7bd15cf",
+    "data/benchmarks/quantities-v1.json": "358f174f5559f871b50580424ca4d90f679f3ada84eaff09249dadf1152aaac4",
+    "data/default.yaml": "bc25bda09f93c1801d0c081b7c632ab370fc06563bd6a4670dd1e4ee04a77e80",
+    "data/journal_profiles.yaml": "44841ad97b40bbc2512106be9730c5f323dbc8e66e13373f18f39b31629cdc4e",
+    "data/manuscript_templates/biomedical_imrad.yaml": "9bba4dab95df6146fb792f5f980e5530c90a050450e289afc29bf761cc10ea69",
+    "data/manuscript_templates/computational_biology.yaml": "7609b03dbae500fae8d223851b2cca5b7913739ea657104c7dcde3eaf1b7aee3",
+    "data/manuscript_templates/generic_research.yaml": "b4e841750a65c49a9ecbb9a70c7a5a2cc43118e69ddba450596e6307b92f4bc8",
+    "data/manuscript_templates/review_article.yaml": "d0d14195dd7c86a490836adf7d06e7dc71dc6d811981f10e1e2360383b73b6e1",
+    "data/model_pricing.json": "5e3c94a54c0c0390055e3c95a311c43aee2155b6548e011bcf5f0a97e7a9c611",
+    "data/style_questions.yaml": "aeb38571d6faa45551d1fdaa78a0c9feb2dd8a9d2ea77ddcd815f45542a7c901",
+    "demo.py": "200ad614a49f4367a8b0649495e0d07dc268924f9b6cd5fcc3f3c9eaa8a5ae68",
+    "drafting/__init__.py": "eb88e2ad68445ad417d4f8c0feb832159af8d22c354f3c13abb0ac057a0e2a7c",
+    "drafting/abstract_writer.py": "a07e931dc81eae46a7eab268668bdc223dc77973fb7409b391233c3df0057039",
+    "drafting/ai_disclosure.py": "586583825abae680e30a674fc497fa8d43d7848aba9a113f6b78d410de29b011",
+    "drafting/discussion_writer.py": "d79e353ee7903dcb67e427ac6a7eaa054a4c058dc9e1ad7e3ebb8eb18435a8af",
+    "drafting/grounded_writer.py": "2cdf733991387e84a8797746faef7566d7d74267cea77e6ec45592c2b9560427",
+    "drafting/outline_builder.py": "22b52188e227fa8dd3043f27b5425267c0e063e760a9f9c13ab9456c6acd9aef",
+    "drafting/results_writer.py": "d22d0e24705e7b62b260d340f697584a4c428c1b683713d56b90ce234a8ca0c9",
+    "drafting/revision_questions.py": "c4e7d53da75a6d8cf73d8a6f7811c8036223c519be8cc2df72000826a10ae2a5",
+    "drafting/section_planner.py": "59b249944cfb180e006b283eee795ddc0af5ef172fba707e8151cf1bf9b4c841",
+    "drafting/section_writer.py": "a90676d72ccee0f25b5d4d604d45c6bc469bbb63a70dd37fa5622e20624ce2e3",
+    "drafting/title_writer.py": "b1ad22e7afa1f05415b541165bbfed40d4ee9385cdc0d18e7c6f1335b69ede2c",
+    "evaluation/__init__.py": "586ebd2b2ae898195114be02a2e2d01bca2546300dd5cf29abd7bf1f676416e4",
+    "evaluation/extraction_runner.py": "106080684a5c8c5ab0e03019178a3b18a107251221351f9eac14d06f55427131",
+    "evaluation/extraction_scoring.py": "53d6a08f25d35487f5fbd742dc7e2732e0df734fb24788e482f179438424fae3",
+    "evaluation/models.py": "a79d6de58079eb1b24fe22490d645d0f605efbaa3baebe07548d3e9bcef23417",
+    "evaluation/protocol.py": "1e4d7415738a3df38cc3afca2e75272977a9c2d3f62ce887e08de6e6952b51d3",
+    "evaluation/rescore.py": "3ff39ccd3a209367388b5b46348028122734f4d5281821fe4b0cc44af903e5fb",
+    "evaluation/runner.py": "2c266fd44ec4593003fe2d3a5509fea09a4948cbdfbfec57c1dbe46f187418e4",
+    "evaluation/scoring.py": "8ec559f2584c45f0237ea37e451a67406c963dad3e1d398e620d5d6765acfabc",
+    "evaluation/synthetic.py": "8ebbe182036654a8bc0e0ee4a5ab8eaf1ceac1519bf1c1100260d197b857200b",
+    "evidence/__init__.py": "22466d29a5c1f49142edd3766223cc6f9ae8975ba161b17ae3a1d1ce4754bed3",
+    "evidence/citation_mapper.py": "d30929a0a3c4948e878c578fb68eeadc339cdf9ce2d7100546761a3a55bfff60",
+    "evidence/claim_extractor.py": "ec9a4a60af4ab36154f2ab97945ef9d4f8a936cb8b34c4c816439c2ed0127f4c",
+    "evidence/claim_registry.py": "ee94ce4d9d88700566ac58d1a058f8659aeb75af2916a4203d3766d740b7e204",
+    "evidence/evidence_index.py": "a0315e06753322c5e40fa4dc2965767ef070952717a071a340d7011d711ab36a",
+    "evidence/quantities.py": "21894e953d33065a6415fe4d302dfba78be5380b48163969873bfde61b79cf55",
+    "evidence/source_snippets.py": "ce808d819df952ecc48ffe220a67c9b6e7f0ed1701a235cf71c1941a89a11a65",
+    "evidence/strength_classifier.py": "fe86c1f1ba0048c6a58fd3100c39cb9eeaee1d6ed4274de2265a42c03f9d6768",
+    "evidence/table_bindings.py": "ed5f7a8fceac909bc2e22c5591f95374b578f5c99782ba4c7796e4ca43946d13",
+    "export/__init__.py": "157c9b4cfba916fe24d1c2eadaa81e2b9ec4e644f64a636b704a73abb0c9781b",
+    "export/bundle_exporter.py": "80ef7cb26974d270bc417094f7a16deecbeaf6002b0dec877645e54973c3edcc",
+    "export/docx_exporter.py": "cc5ebdc53d2128c86a9ff34fb08d3610367f6b5ba8fca71b76acffe04a5d20bf",
+    "export/excel_reporter.py": "a17f41d0576c6091e1bc5c579837f2e94d1f20e1cc3d34e4303cf8d9be90c2ba",
+    "export/latex_exporter.py": "af662acf06ad95fda070a222923f1d7493abb7fc7f651dd25995c678b1d73035",
+    "export/markdown_exporter.py": "325707311557848a8e5618b307618b182df570f4df410d434b383a797583b05f",
+    "ingest/__init__.py": "f25e08d2b66e827efbf490728ea2b56608a73a32821f3274ed8aff84236f6718",
+    "ingest/bibtex_ingest.py": "2a92a9d7b28cc1faacb2a1a3691911939b23a792324988317be99683573aa4e5",
+    "ingest/metadata_enrichment.py": "f98109b835f8da99b0664c44b2549bf3cb303b399528fb2e83a0df449afed687",
+    "ingest/pdf_ingest.py": "62ae5e6cf273332e38da7a053349273eba67a3c98eda335be18dd70ffa23447a",
+    "ingest/project_ingest.py": "2be920e26a107910763056592ff38f21bbf73f223b3b33d8711cd87e9a1f65a8",
+    "ingest/source_ingest.py": "8bf8f5dad183bf50e1023659ed117ab7485114ef773d5ecfbc829cc529723d29",
+    "ingest/style_ingest.py": "33eca63ac5c0aa9849b84d2c70f4e0f7f6332f75f386d67d3beab437b50b843e",
+    "ingest/table_ingest.py": "70ae937372f8eaa93a4d08d1675b0e1fb01c4112474fa955d76fe509803f7b5f",
+    "intake/__init__.py": "4664b43a4fb5f82c163992ffb2870b5a4b0493d31fb2c84bf5e431f3bf48e265",
+    "intake/import_staging.py": "37b1c7e79f6445122b2c9adcc8c06b2cb5e38cff59988599114c1eb7cca4243d",
+    "intake/models.py": "6d06e60f09a3cb23d08369ec859003475c3db2eb14d54f99f16d8932674e86cb",
+    "intake/registry.py": "bf799a16ebf95cabb44a575764cd889de187ba7fb53740784a505afa8ac3754d",
+    "intake/scaffold.py": "f9544bc87c74b95561ef1f61ca4d437a79813e614060bd4bd2f4b92f241e96c5",
+    "learning/__init__.py": "0e21eda10f8a75735512b178df475dba9e95c2915e53018aa30bdf90fa49884e",
+    "learning/features.py": "bce26b5be568dfe50ad341b25325eaeb609f18e4527b829e0eda340042e08767",
+    "learning/models.py": "8fdb76b98d922d4e3220ababa54ccd18e5dd4c04878a8db06a89701912a918fc",
+    "learning/ranker.py": "5840a46ed27b0b6e62a00356bb40b724a9d91f1174b6d1b49d0f8373c6736348",
+    "learning/reporting.py": "813f4f10ed4b2b3687d28edd95fe6194b58ac4bd7f06c8e69a8379f33fbf69ab",
+    "learning/splits.py": "448be91721b79c39853a96497a3ae60dff8cf0b041e87016c94c28537aa304e0",
+    "learning/synthetic.py": "bc838d7079103561d1fc870c9f52dd2f6e523dbe626ebcb121a02d44976391fd",
+    "llm/__init__.py": "643ec0f26756a7a5a7ffef2ea47418901288fe12bd1737749d85a1bed18e7e0f",
+    "llm/base.py": "da2a856691fb7564d4ad98cab628a847bdfd15cb6cdfc9c21249eee73c203ba9",
+    "llm/budget.py": "e7e54c11bf493e9172110da2260795458ef1fc8922b5c2853312b006f82c7584",
+    "llm/evaluation_adapter.py": "9aaae42a77262618d4040c8a4acd0bf8dffdb044a5c5502f3b7a77f960f31296",
+    "llm/extraction.py": "5d408fc4fd76029160bed2493516872ba4ecc93f7386c62eed4660ab0a379850",
+    "llm/extraction_adapter.py": "d7c6efbd4d2462eda0cb986aa2171a16ddae15924e5587bc089e3c382cb54cc2",
+    "llm/grounded.py": "c404693465450f2f71ee3052ebb181dec7398d7b2ba78a5d6bbd3ce3185afcda",
+    "llm/mock_provider.py": "16d3c122e9e8a8c4646f80a17aa186655775e237019ef1d6a71e8ea283fa8e33",
+    "llm/openai_provider.py": "adbbe0ef61c77cbc0e8254762255eae381fd391fdc2c490b833fa52d8b1a6961",
+    "llm/prompts.py": "68adb7eae931af45adb1e8b9a2a81ea68a7b9c1581c039455fd42c4c89a25599",
+    "llm/response_capture.py": "8359d614fdb10fffb87b071dd9cf17c5cf75f0e24474ea19bd60a292fd51d343",
+    "logging_utils.py": "45804d6b6a7722b30e12b36b46ad078dab90f51ce13b8e50e6ed9c29b52c3d42",
+    "models/__init__.py": "e4610d75ce1944519c1144213140f1b634abece8a97631f4df390087c2ba2c0e",
+    "models/audit.py": "8724b5dc591aa3a03af05e76dfbe403345803421cdbaf9d2d539dc5f9ec47435",
+    "models/citation.py": "c40158a3a55adbd368ea9742a536430ccc0c72af8b59e7b63c883287ac515f77",
+    "models/claim.py": "007bbd84ebd477be0f5463a6494afeaea61a26e03484e4bed393d681588d8b89",
+    "models/manuscript.py": "6195d8b60fc9a52fa39c5b0fc2cf73f21ba3339e81175553dc6ce9dd903eb53b",
+    "models/project.py": "b4a1f22746735efd6ca5f24370c206b80ee0cf375fd63bc31932bd32c298b2e9",
+    "models/review.py": "eef1fc98da55a7aa48f802663278415cee5e512e9e40465c1ca0a02934aa3d99",
+    "models/source.py": "0c585efc9b428266f244325ffd1d965ebe30034ce55bb009103f5dbab7383dcf",
+    "models/style.py": "15053bdcea91eb14f08f23e8184d58f3db4e04da28a77bbe42ba01f39e76acf1",
+    "orchestration/__init__.py": "27e9ccc23ae2ce33a29a8aebfcd42dcec2f341e4d70856574dc149f81c59cb8d",
+    "orchestration/engine.py": "71153dd8f0eb9227d7d435201f09122665c3d8f1b4149d63497c28de81e86896",
+    "orchestration/models.py": "e84e4288a63afd17d239ba25ab8b12a199f987306f29024dd6c797496dc855e9",
+    "orchestration/storage.py": "904f1d7650393dfd6019739274297baf2dec32cb3cfcb2ca0f4000c480cb0bfd",
+    "orchestration/worker.py": "79078bf2b1f08d02ac9fed7199fc77618f52b9ba53874a138a676f4ddcb64dbb",
+    "pipeline/__init__.py": "490905b9ba83226cfe02d8d3f9797a4d1a988de259d068e6336dfc363f1b98b7",
+    "pipeline/diffing.py": "238de7bb1518b768afdcba04cbf5318a842667592d3030ff8cbf8770708cbde9",
+    "pipeline/pilot_prep.py": "a76c0e1c216708f3d8cef8ea93d95f707038be3dda3c638cbb94fd7398a88973",
+    "pipeline/run_context.py": "9dab8948f8b6f294e5c534fd9c8062a8f1077d05a4557b77334dc6b7a9abde49",
+    "pipeline/stages.py": "2040048ae215b9aa77877f5e62f6898001cf5dc56b0c39c277d36f157df0fa03",
+    "pipeline/validation.py": "256c1a1d2e8d25f3b66f717a0c4f08cfec277d2e4783a816c75258a2fde01a0c",
+    "pipeline/workflow.py": "be14a30e1300e767e8f2c6cde06cf537848c752f5fa83600fa10b10e04a318c4",
+    "research/__init__.py": "7bb74b3a1f341fe813ba0ac99d652dc28e7ce950fb0a9c9942d72bd2da20e759",
+    "research/cli.py": "1345d33c0612503b6a3bdf74f751e5735327429685a01689f1e70205e854be76",
+    "research/comparison.py": "94b3f0d5ec0fb82dd06611eafc0356393235b859464546716ae22720da0ac08b",
+    "research/demo.py": "8247fa50ff7c4137f13387c37abfd927dcf5e0bb148d03108ee5b84c4f277aa4",
+    "research/handlers.py": "08d5daef472f9de2b7d81f0dd5ef79996076e8c0e013ab39cb5e89735e0dec06",
+    "research/pipeline.py": "96b0af8d0a0303c18b65b88ca2e4a2dbd2a51c83de5bf7fc1df44e5078bd1561",
+    "research/proposals.py": "5493a054316cec2215b33c7f74e1f51f92b10dfcf76e764007f5e12ac0b4d3ef",
+    "research/provenance.py": "39f2cc387e07a40189ecefa08a08f65bee58a2fc6538701071a2bc6df73bbf85",
+    "research/providers.py": "1a6016b691fba643e507836d841378b61c11ae4b721e6f3962fe6c75687b7ed2",
+    "research/search.py": "4e206ec8347411ce427616f225966bc725e39e9f36734712589f35798542b162",
+    "research/settings.py": "96e1bc6a28f5ead3f95dde60838c91708bd72c638597ba31e6b433751dda5dad",
+    "resources.py": "08e52b12675b0f539ed979208fad7a0b9086b58c38a2ca7b66f156110f49e469",
+    "retrieval/__init__.py": "03d1222bb3a6b5bfd90b435a619643c0bc15d31a3b0caec6ae3a4e6b954f67fc",
+    "retrieval/benchmark.py": "5e4e90779d847516876ab9e29caedcac62c20c59d3354a0410373a3c657eed7c",
+    "retrieval/evaluation.py": "8f1e7ca0b68eb710865f4f31051b03873d92a6b36d0377c9bb1747512268d548",
+    "retrieval/lexical.py": "ddc8347ad5a8f71820145860180fba09aacc18e9ebc771a5210c5d1a05580d1f",
+    "review/__init__.py": "45978dfe664358f9707f36ac0cc67f9c9d419c347f1819411e719958be7df57d",
+    "review/workflow.py": "0046d2afccd3fc8804cb07715762c62160b9110f8d3f321c4cf71d62a629125c",
+    "style/__init__.py": "2813bb9d0dfd3250cb2992526e52c2b4ea3c0b1829132b9146edbddd1d88e889",
+    "style/benchmark.py": "c1ed47570dae7c9d7389cd4929a03912af9ddd21c50cd439b4484a77cd86c33b",
+    "style/curation.py": "29bdf3f68731bdd0d22b64ad55859cbd1e9275aa3336673b550f4134028ba200",
+    "style/document_extractors.py": "c8ecc529a94b503f282851b0598d9be1df84086a8b5b8d64019d45240ad58fe0",
+    "style/evaluation.py": "c47fb1d399df4dffee986066457e59bf2464950757f1ab53aa18439d9e6444d1",
+    "style/features.py": "a099144a95c57c51c8d61779cc727de852748d05068137ee5d4896b737b5aa14",
+    "style/memory.py": "744505b0bdfcae4220092e346f1abe162fd476e8c007cf99549299285638df52",
+    "style/preference_trainer.py": "543b7c3698d833e5dfa8fb265a075d7c21df12f02aa8fb93ccd10f1c8c12cd1b",
+    "style/profiler.py": "c256da4f43af5b0de3135d11d1e320de07072f35b17e10e9d10a7dbf7a804b7a",
+    "style/retrieval.py": "a733a0117e748ff5325beb8e271ac8e797d6e215c8270321cfd41d5b8a36f86a",
+    "style/style_guide.py": "a2912a2c598a320e72e60037c31785a2b9ddee926a1772d45e1940941bbd5b02",
+    "style/style_scoring.py": "5c6cfbd21f32c51a48de1919e1f37938fa1a93ddfdf7b24c52e17168acb16ff8",
+    "style/summary.py": "797de7c7858f6bc603d3a787128d0d4c7b7afbfac85b7d816f67978d92c27487",
+    "utils/__init__.py": "e258ad840ba18670324db76eeb7ea7851e1ee022c86d8f6cc879b57d51b31c47",
+    "utils/dates.py": "ae0e6803e6a3d91faf417dfd5677f48905f8847182e1233ec67d5e1c584b1e7c",
+    "utils/hashing.py": "45f9cf5b1f3caa8fd32d3eec7e47657a7c9dc8bee5781726266e934dff415c51",
+    "utils/ids.py": "3792386c6589271c1e5124471fb96545d4d08dad56ab0d83be60ac833369a4a0",
+    "utils/io.py": "222e87684d58e49c346199ae75ecb752dbf9cd0a1d186decf027fe15cf33eddf",
+    "utils/text.py": "e5149c366fd0587c7a54f78e18fc2e58c30c001b62cbcd70a46072ce8028a107"
+  },
+  "captured_calls": 168,
+  "attempts_per_capture": 1,
+  "selection_model": "gpt-6-luna",
+  "selection_basis": "DEV accuracy tie then lower measured token-cost estimate; locked before TEST",
+  "test_reselection": false,
+  "limitations": [
+    "Controlled synthetic templates and six independent families per partition; no natural-document, clinical, or real-author validation.",
+    "Case-level Wilson intervals assume independent cases; paired bootstrap uses source groups.",
+    "Costs are token-based estimates, not invoices. Missing usage remains missing.",
+    "This records tested source snapshots, not performance of later package changes."
+  ],
+  "luna_failure": {
+    "case_id": "case_8718c2dfa36d28ed",
+    "stratum": "spaced_minus",
+    "source_quote": "Gauge G022 reports correction - 1.175 mV.",
+    "proposed_value": "1.175",
+    "proposed_unit": "mV",
+    "diagnosis": "Real dropped-minus mutation: positive 1.175 proposed from negative - 1.175 mV source.",
+    "guard_result": "Rejected before acceptance",
+    "assertions_accepted": 0,
+    "validation_issues": [
+      "proposal 1: value or its bound unit is absent from the quote"
+    ],
+    "raw_capture": {
+      "archive": "archives/quantity-v11-test.zip",
+      "member": "model-comparison-20261031T123727Z-1cee983b/results/extraction-v2.1-20261031T123728Z-3641d953/responses/baseline-06eaeb8240cf93fdcf61.json",
+      "file_sha256": "08215420f977e027239952974b9857896382d01c138be2361dd50aa9381fdda2",
+      "bytes": 1751
+    }
+  },
+  "interpretation": "Luna 83/84 and Sol 84/84 on held-out TEST. One Luna sign error was rejected; no wrong tuple was accepted. This does not change prelocked DEV selection or establish superiority."
+}

@@ -10,7 +10,7 @@ manuscriptforge research plan ../manuscriptforge-demo
 manuscriptforge research run ../manuscriptforge-demo --provider mock
 ```
 
-The research demo contains original synthetic nonmedical inputs. The mock provider exercises the execution and validation contracts without a model request. A completed mock run is a software demonstration, not evidence of generative writing quality. Review all resulting findings.
+The v2 research demo contains original synthetic nonmedical inputs and explicitly scripted claim-review fixtures. These labels exercise the review workflow; they are not human scientific approvals. The mock provider exercises execution and validation without a model request. A completed mock run is a software demonstration, not evidence of generative writing quality. Review all resulting findings.
 
 The older `manuscriptforge demo NEW_DIR` command demonstrates document extraction and passage curation; it is a different, smaller example.
 
@@ -21,6 +21,18 @@ Use a separate project directory and the [usage guide](usage.md) to prepare `pro
 `research plan PROJECT` shows the stages and selected inputs before execution. `research run PROJECT --provider mock` exercises the local path. The trusted plan contains validation, ingestion, profiling, claim construction, section tasks, assembly, audit, and export. Profiling and claim construction can proceed independently; section tasks wait for their declared dependencies.
 
 The execution layer snapshots declared input files, records their hashes, and creates isolated workspaces for stages. Its resume and cache checks include inputs, parameters, software identity, and dependency artifacts. Changing an upstream source invalidates dependent work. Successful unaffected stages can be reused after verification.
+
+## Review extracted claims
+
+For ordinary projects, extraction does not approve its own output. After a run reaches the claim stage, inspect the retained claims, including when a later stage failed:
+
+```bash
+manuscriptforge research claims PROJECT RUN_ID
+manuscriptforge research review-claim PROJECT RUN_ID CLAIM_ID --decision approve --support direct --reviewer "Author name" --reason "Checked against the cited source and table row."
+manuscriptforge research run PROJECT
+```
+
+Use `--decision reject --support unsupported` to exclude a claim, or `--section SECTION` for explicit routing to a configured section. Decisions are bound to claim and evidence hashes; changed sources require renewed review. Updating the review ledger invalidates the claim stage and its descendants while unaffected ingestion and profiling can reuse verified results. The [claim-review guide](claim-review.md) explains the ledger, stale decisions and review audit.
 
 ## State, resumption, and cancellation
 
@@ -39,11 +51,15 @@ The engine publishes `PROJECT/outputs/latest.json` only for a verified successfu
 
 ## Candidates and audit findings
 
-The model-facing schema associates paragraphs with supplied claims, citations, and style examples. It checks reference membership, claim-specific numeric literals, structured fact fields where supplied, citation identifiers, copied style-only passages, and word limits. Source instructions are treated as untrusted data.
+The model-facing schema associates paragraphs with supplied claims, citations, and style examples. It checks reference membership, claim-specific quantities, structured fact fields where supplied, citation identifiers, copied style-only passages, and word limits. Source instructions are treated as untrusted data.
+
+When ingested table rows include explicit entity labels and typed numeric cells, the request can also carry row bindings. The result records `table_binding_checks` for each paragraph. Observable row/value swaps in supported clauses reject the candidate. A `not_evaluated` report or nonempty `review_reasons` means coverage is incomplete even when the overall candidate passes its other checks. Exact field names support field-level checks; unlabeled values support only bounded row-membership checks. Pronouns, compound subjects, comparisons, and ambiguous labels remain for review.
+
+In narrative prose, common count nouns such as “records” and “rows” are treated as counted-entity labels rather than physical units. This avoids rejecting a count merely because prose names what was counted. It does not verify that the entity label is correct. Explicit physical and compound units retain their case, value and relation checks. Structured extraction keeps explicit unit binding; the count-noun exception applies only to narrative quantity comparison.
 
 These are structural and syntactic constraints. A model can still produce semantically wrong prose using known words and numbers. Citation relevance is not citation entailment. Style samples are not factual evidence. A human author must review the candidate and its sources.
 
-The final export node writes `research_bundle.zip` with manuscript Markdown, DOCX, LaTeX, JSON, stage artifacts, source snapshots, settings, and a file manifest. ZIP payloads are checked against recorded sizes and SHA-256 digests. Inspect `stages/audit/qualification.json`, audit reports, and source records before interpreting the result. Computational completion and scientific acceptance are separate statuses.
+The final export node writes `research_bundle.zip` with manuscript Markdown, DOCX, LaTeX, JSON, stage artifacts, source snapshots, settings, and a file manifest. ZIP payloads are checked against recorded sizes and SHA-256 digests. The manuscript bibliography includes cited records; the full input citation registry remains in ingestion artifacts. Inspect `stages/audit/qualification.json`, audit reports, and source records before interpreting the result. Computational completion and scientific acceptance are separate statuses.
 
 ## Optional model access and cost control
 
@@ -75,7 +91,7 @@ This writes a paired, grouped held-out functional evaluation. The default synthe
 
 ## Source-only model comparison
 
-For a separately authorized paid comparison, the CLI exposes the source-only protocol:
+For an explicitly configured paid comparison, the CLI exposes the source-only protocol:
 
 ```bash
 manuscriptforge research compare-models local/model-comparison local/model-ledger.json 10 --allow-network --baseline gpt-6-luna --candidate gpt-6.1-sol --split dev --credentials-from PROJECT
@@ -83,7 +99,7 @@ manuscriptforge research compare-models local/model-comparison local/model-ledge
 
 The three positional arguments are the output root, shared ledger, and budget cap. The command supplies raw sources and queries, not reference fact values. Use only approved data. Model selection belongs on development data; final test data must remain untouched until the method is frozen. This command and `research evaluate` measure different input contracts and their results should not be merged into one quality score.
 
-For the separately versioned quantity dataset, add `--dataset manuscriptforge/data/benchmarks/quantities-v1.json --scoring-version 2.1-quantities`. The model adapters default to quantity guard 2.1; `--baseline-quantity-protocol` and `--candidate-quantity-protocol` select explicit historical comparisons. Guard and scoring versions are reported separately. Add `--capture-policy failures` to retain local raw responses for diagnosis, or `all` for every response; the default is `off`. The [dataset card](quantity-benchmark.md) defines literal ground truth and limitations.
+For the corrected quantity v1.1 query contract, add `--dataset manuscriptforge/data/benchmarks/quantities-v1.1.json --scoring-version 2.1-quantities --no-label-hints`. This preserves exact predicate names and keeps units in their separate field. The original v1 run is retained only as a contract diagnostic. The model adapters default to quantity guard 2.1; `--baseline-quantity-protocol` and `--candidate-quantity-protocol` select explicit historical comparisons. Guard and scoring versions are reported separately. Add `--capture-policy failures` to retain local raw responses for diagnosis, or `all` for every response; the default is `off`. The [dataset card](quantity-benchmark.md) defines literal ground truth and limitations.
 
 ## Search and preference ranking
 

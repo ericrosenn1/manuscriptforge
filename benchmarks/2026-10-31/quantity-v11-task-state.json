@@ -1,0 +1,20 @@
+{
+  "task_name": "Append corrected quantity DEV and locked TEST evidence",
+  "task_status": "PASS_WITH_LIMITATIONS",
+  "items_requested": 3,
+  "items_processed": 3,
+  "items_succeeded": 3,
+  "items_failed": 0,
+  "validation_status": "Run manifests, archives, canonical datasets, lock chronology and inference-source comparison verified",
+  "audit_status": "Original bytes preserved; selection remains prelocked from DEV; no accepted wrong tuples in TEST",
+  "repair_cycles": 0,
+  "repairs_performed": [],
+  "scientific_assumptions_changed": false,
+  "requires_human_review": true,
+  "unresolved_issues": [
+    "One Luna TEST sign error was correctly rejected.",
+    "Only six synthetic independent families per partition; no real-world validation.",
+    "The rejected Luna case has unavailable usage in the scoring report."
+  ],
+  "recommended_next_action": "Retain prelocked selection; use separate future studies for broader validation."
+}

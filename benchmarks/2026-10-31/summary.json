@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-31",
+  "scope": "Synthetic model and engineering evidence tied to explicit source snapshots; not scientific validation",
+  "entries": [
+    {
+      "id": "api-budget-final",
+      "path": "evidence/api-budget-final.json",
+      "sha256": "e1946e0bc75193dbf329370921a9507036db5ed4abdbc6876aae8e678954b430"
+    },
+    {
+      "id": "engine-invariants.summary",
+      "path": "evidence/engine-invariants.summary.json",
+      "sha256": "c939e5ca2911b1121a1091a58320c7affb8eecc9eee7ef8db568fcc2e0014d09"
+    },
+    {
+      "id": "paid-reviewed-demo.summary",
+      "path": "evidence/paid-reviewed-demo.summary.json",
+      "sha256": "bb62d5dc08712959237d569045b3d90f073ad83c9fa1c4626ff5066049737fdb"
+    },
+    {
+      "id": "quantity-v1-invalid-contract.summary",
+      "path": "evidence/quantity-v1-invalid-contract.summary.json",
+      "sha256": "95fbb6d07ca3307efb01b6d08582e8156712cd9da3cb2f27c80b73b0cf3cb235"
+    },
+    {
+      "id": "quantity-v11-dev.summary",
+      "path": "evidence/quantity-v11-dev.summary.json",
+      "sha256": "4da605f079971f0be474f0cf38a7baee964088ee3c5034a2d1d6be98a69bb02c"
+    },
+    {
+      "id": "quantity-v11-selection.summary",
+      "path": "evidence/quantity-v11-selection.summary.json",
+      "sha256": "cbe9fd068f6412fecd95e34bc3a74b8fe493dd59c180cf628e87dc85278012e0"
+    },
+    {
+      "id": "quantity-v11-test.summary",
+      "path": "evidence/quantity-v11-test.summary.json",
+      "sha256": "ffbc44046bfa54dbd90cc96a415ccdf82f3c6fd3a1c77710a172cbb72fca55cf"
+    },
+    {
+      "id": "retrieval-performance-final",
+      "path": "evidence/retrieval-performance-final.json",
+      "sha256": "df7c4c09dfdb258c32dcb9b03cf3cefe2c11c21c6d44ffe26d793ca5acf6f60b"
+    },
+    {
+      "id": "retrieval-performance-v2",
+      "path": "evidence/retrieval-performance-v2.json",
+      "sha256": "7a29d5f9591040ecacea1e5e90149bd3d2e06e6e916a8151272722aebb4ccd9f"
+    },
+    {
+      "id": "software-validation-local",
+      "path": "evidence/software-validation-local.json",
+      "sha256": "ab4db7da45961db3b43d2e0b6715e0f4000cf33ba03fb1e96aff33c4bbb59c0b"
+    },
+    {
+      "id": "source-only-dev.summary",
+      "path": "evidence/source-only-dev.summary.json",
+      "sha256": "aad9c719bb99d6d011b917c45b12fd2a546273720ff05da6df3d6984d2773566"
+    },
+    {
+      "id": "style-learning.summary",
+      "path": "evidence/style-learning.summary.json",
+      "sha256": "acb5438cbde8f4747dbd441c82b941462a66795454dfbd513fc0ea16e6625545"
+    },
+    {
+      "id": "workflow-performance-v1.summary",
+      "path": "evidence/workflow-performance-v1.summary.json",
+      "sha256": "2dae7d264f5db0f60219d1af4dce9e9c666f7ae006ab0365d0fb885b468d3e80"
+    },
+    {
+      "id": "workflow-performance-v2.summary",
+      "path": "evidence/workflow-performance-v2.summary.json",
+      "sha256": "ba6d2028ceced5394194c26a476f4c0d89f2beaf91b508ed2265a4d9d97c1711"
+    }
+  ],
+  "quantity_v1_status": "INVALID CONTRACT; not model-quality evidence",
+  "corrected_contract_and_later_workflows": "Corrected quantity v1.1 DEV/TEST plus final reviewed-demo and workflow timing snapshots included",
+  "new_paid_calls": 0,
+  "quantity_v11_selection": {
+    "selected_model": "gpt-6-luna",
+    "basis": "Predeclared DEV accuracy tie then cost",
+    "test_reselection": false,
+    "dev": {
+      "luna": 84,
+      "sol": 84,
+      "cases": 84
+    },
+    "test": {
+      "luna": 83,
+      "sol": 84,
+      "cases": 84
+    },
+    "accepted_wrong_tuples": 0
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "fixture": "research-records-v2",
+  "provider": "mock",
+  "rows": [
+    {
+      "max_seconds": 26.976456200005487,
+      "median_seconds": 26.27687140001217,
+      "min_seconds": 25.57728660001885,
+      "mode": "cold",
+      "repetitions": 2,
+      "workers": 1
+    },
+    {
+      "max_seconds": 1.0337020000442863,
+      "median_seconds": 1.0084625500021502,
+      "min_seconds": 0.9832230999600142,
+      "mode": "warm",
+      "repetitions": 2,
+      "workers": 1
+    },
+    {
+      "max_seconds": 23.96391669998411,
+      "median_seconds": 21.147212599986233,
+      "min_seconds": 18.330508499988355,
+      "mode": "cold",
+      "repetitions": 2,
+      "workers": 2
+    },
+    {
+      "max_seconds": 1.2965663999784738,
+      "median_seconds": 1.1302885999903083,
+      "min_seconds": 0.9640108000021428,
+      "mode": "warm",
+      "repetitions": 2,
+      "workers": 2
+    },
+    {
+      "max_seconds": 19.1893367000157,
+      "median_seconds": 19.0758999499958,
+      "min_seconds": 18.9624631999759,
+      "mode": "cold",
+      "repetitions": 2,
+      "workers": 4
+    },
+    {
+      "max_seconds": 1.1524470000294968,
+      "median_seconds": 1.1385074499994516,
+      "min_seconds": 1.1245678999694064,
+      "mode": "warm",
+      "repetitions": 2,
+      "workers": 4
+    }
+  ],
+  "all_runs_verified": true,
+  "repetitions": 2,
+  "scope": "Application-cache cold/warm local execution; not hardware-normalized or scientific validation."
+}

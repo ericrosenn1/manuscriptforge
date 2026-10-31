@@ -1,5 +1,7 @@
 # Offline demo walkthrough
 
+This is the smaller corpus demonstration. The separate [research workflow demo](research-workflow.md#a-local-demonstration) includes manuscript inputs and explicitly scripted claim-review fixtures.
+
 Run `manuscriptforge demo OUTPUT_DIRECTORY` after installation. The Python equivalent is:
 
 ```python

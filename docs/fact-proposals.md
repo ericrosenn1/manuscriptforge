@@ -40,6 +40,8 @@ This example replays an explicit synthetic fixture and makes no model or network
 
 `FactExtractionValidationError` carries the validation report when the proposals fail these checks. Empty output must explain the missing or ambiguous evidence. Input data, returned quotes, and source text are never silently rewritten to make a proposal pass.
 
+The current model-facing contract puts only the numeric expression, interval or qualified quantity in `value`, and the unit in the separate `unit` field. Measurement labels and explanatory prose are excluded from `value`. Closed intervals retain their brackets and bind their trailing unit. This extraction rule is separate from the count-noun handling used when validating narrative paragraphs.
+
 Fresh extraction uses quantity protocol `2.1`. A validation report records that version. The explicit `quantity_protocol="2.0"` compatibility option exists to reproduce historical validation outcomes; it retains the older surface checks and is not the default for new proposals. Source text, hashes, and quoted offsets remain unchanged under either protocol. Known author-year citation forms and section references are distinguished from scientific quantities, so a bibliography year cannot license a new result.
 
 ## Limits and human review

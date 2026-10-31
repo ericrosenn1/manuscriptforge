@@ -1,52 +1,36 @@
-# Research engine campaign
+# Validation and reproducibility
 
-This campaign strengthens the Python research tool. The browser Studio remains available;
-its presence is not evidence of model quality or scientific validity.
+The research engine separates software correctness, model-output consistency, preference learning, and execution performance. Each has a distinct fixture, endpoint, and report. A generated manuscript or passing process is not evidence of scientific validity.
 
-The starting revision is `fbd7b17397b3947298f1b1191e2a607c3c7127f7`.
-Work began on 31 October 2026, with a soft 24-hour development budget and a separately
-authorized maximum of USD 100 for paid model evaluations. Private writing is not included
-in benchmark data. Successful existing runs and source inputs are preserved.
+## Reproducible inputs
 
-## Required outcomes
+Public examples and benchmarks use original synthetic nonmedical records, not private writing or empirical study results. Datasets retain source hashes, locations, explicit expected outputs, and versioned query contracts. Connected document families, authors, duplicate text, and shared sources remain in the same partition.
 
-1. A real, typed, evidence-grounded generation path, with explicit model/provider versions,
-   bounded output, refusal/truncation handling, and auditable token/cost records.
-2. A resumable multi-node workflow with bounded parallel processes, dependency validation,
-   content-addressed caching, real cancellation/timeouts, and immutable stage results.
-3. Valid evaluation protocols: document-family/author/hash-disjoint splits, withheld labels,
-   exact factual and citation checks, abstention measurement, and paired baseline comparisons.
-4. Evidence that failure recovery, cache invalidation, concurrency, exports, and provenance
-   work under deliberate fault injection, not only on a successful demonstration.
-5. An organized package, useful CLI, documented architecture, reproducible benchmarks,
-   and a verified final handoff containing code, results, manifests, and limitations.
+The adversarial software comparison uses baseline revision `fbd7b17397b3947298f1b1191e2a607c3c7127f7`. The [development guide](development.md) provides its probe commands, local performance scripts, package checks, and offline test instructions. Each new report records its input and implementation identity rather than overwriting a previous result. The [reviewed benchmark package](https://github.com/ericrosenn1/manuscriptforge/tree/main/benchmarks/2026-10-31) provides summaries, original archives, and manifests for the historical measurements.
 
-## Acceptance and interpretation
+## What the checks establish
 
-- Existing behavior remains compatible except for documented bug fixes. Corrected tests
-  must become stricter; thresholds are never relaxed to obtain a passing report.
-- Empty, unavailable, corrupted, unsupported, or semantically unrelated output cannot earn
-  a positive quality conclusion merely because it parsed or a process exited successfully.
-- Changing a source, review decision, model, prompt, parameter, or implementation must
-  invalidate every affected cached descendant. Unaffected successful nodes must be reused.
-- Cancellation and timeouts terminate owned workers. Interrupted runs must be resumable
-  from verified completed artifacts without treating partial files as success.
-- Serial and parallel execution must preserve substantive output and provenance. Performance
-  reports record workload, hardware, process count, repetitions, warm/cold state, and timing.
-- Model experiments report grounding, citation correctness, numeric fidelity, coverage,
-  abstention, latency, and cost separately. Schema conformance is not factual correctness.
-- Baseline and candidate see the same public inputs. Test labels are withheld from model
-  prompts and tuning; duplicate, author, and source-family leakage is checked explicitly.
-- An improvement is reported only when supported by the recorded comparison. Null results,
-  failures, and regressions remain in the report. Synthetic evaluations do not establish
-  clinical, scientific, or author-imitation validity.
+| Layer | Verification | Interpretation limit |
+| --- | --- | --- |
+| Execution | Dependency ordering, worker isolation, bounded retries, cancellation, snapshot integrity, cache invalidation, and bundle hashes | Computational correctness, not validity of research inputs or conclusions |
+| Structured output | Known references, quote anchors, numeric relations, explicit units, bounded table-row associations, and output limits | Syntactic/source consistency; unresolved grammar and semantics remain visible |
+| Author decisions | Source-bound claim reviews, stale-review detection, and explicit section routing | Records author judgment; neither model output nor a fixture approval establishes scientific validity |
+| Model comparison | Same public inputs, withheld expected outputs, paired cases, abstention and resource accounting | Evidence applies to the specified synthetic contract and split |
+| Preference learning | Explicit labels, grouped holdouts, train-only scaling, calibration, and model serialization | Synthetic mechanism checks do not establish a real author's preferences |
+| Performance | Declared workload, hardware, worker count, repetitions, cold/warm state, and output consistency | Local measurements; no universal speed or quality claim |
 
-## Execution record
+Table-row checks publish their evaluated coverage and review reasons. A globally valid candidate can still contain `not_evaluated` row associations. Count nouns in prose are not treated as physical units, but their semantic correctness is not inferred. All candidate prose remains subject to author review.
 
-Detailed mutable campaign state and raw experimental artifacts live outside the source
-package. Reproducible benchmark definitions and compact, reviewed results belong in the
-repository. Paid requests must reserve their maximum configured cost in a shared ledger
-before dispatch; ambiguous failures retain that reservation until reconciled.
+## Experimental qualification
 
-No paid evaluation is reported as completed until credentials, usage, outputs, and
-validation evidence are available. The USD 100 authorization is a cap, not a spending target.
+Model and prompt selection belongs on train/development data. Freeze dataset hashes, query/guard/scoring versions, model settings, and implementation before evaluating a final test split. The report retains failed calls, missing usage, null denominators, paired uncertainty, and source changes during execution.
+
+A defective input contract invalidates comparative interpretation. The initial quantity-v1 development experiment is retained as a contract diagnostic because query wording conflicted with unit placement and exact predicate naming. [Quantity v1.1](quantity-benchmark.md) changes only the query contract and version metadata; sources, gold facts, partitions, and endpoints remain unchanged. Results under the two contracts must not be presented as a model improvement.
+
+The [evaluation protocol](evaluation.md) distinguishes supplied-fact tests, raw-source extraction, ranking, and explicit rescoring. Optional raw-response capture supports diagnosis without another model call; local captured text is reviewed before any publication.
+
+## Cost and artifact accounting
+
+Optional model calls reserve a conservative upper cost in a shared ledger before dispatch. Provider-reported usage and token-based cost estimates remain distinct from invoices and from unresolved reservations. An execution budget is a cap, not a target or a guarantee of answer quality.
+
+Reports retain provenance, results, and manifests. Public derivatives identify any path sanitization and preserve original artifact hashes. Readers should use the [release notes](release-0.2.0.md) for measured outcomes and their limitations; unfinished experiments are not reported as validated results.
