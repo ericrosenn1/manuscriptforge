@@ -5,6 +5,8 @@ import '@fontsource-variable/newsreader'
 import App from './App'
 import './styles.css'
 
+document.documentElement.dataset.buildRevision = import.meta.env.VITE_BUILD_REVISION || 'local'
+
 class ErrorBoundary extends React.Component<React.PropsWithChildren, { error: boolean }> {
   state = { error: false }
   static getDerivedStateFromError() {

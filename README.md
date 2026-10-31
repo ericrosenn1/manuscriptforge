@@ -10,7 +10,7 @@ Turn writing samples into a reviewed corpus, explore the patterns in your prose,
 
 ![ManuscriptForge Studio: an editorial workspace with a corpus overview, section coverage, and writing analysis](docs/assets/studio-overview.png)
 
-**[Studio guide](docs/studio.md)** · **[Python walkthrough](docs/demo.md)** · **[Architecture](docs/architecture.md)** · **[Development](docs/development.md)**
+**[Open the live studio](https://ericrosenn1.github.io/manuscriptforge/studio/)** · **[Studio guide](docs/studio.md)** · **[Python walkthrough](docs/demo.md)** · **[Architecture](docs/architecture.md)** · **[Development](docs/development.md)**
 
 ## Start the studio
 
