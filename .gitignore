@@ -17,3 +17,7 @@ local/
 .coverage
 coverage.xml
 htmlcov/
+node_modules/
+web/test-results/
+web/playwright-report/
+*.tsbuildinfo

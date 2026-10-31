@@ -1,41 +1,54 @@
 # ManuscriptForge
 
-ManuscriptForge turns local writing documents into reviewed passages, descriptive style profiles, and reports linked to their sources.
+### A considered workspace for research writing.
 
-A writing **corpus** is a collection of writing samples. Researchers can use ManuscriptForge to inspect that collection, decide which passages belong in it, and compare descriptive statistics and examples across manuscript sections. The recorded decisions and source links make it possible to see exactly which text contributed to a summary.
+Turn writing samples into a reviewed corpus, explore the patterns in your prose, and work on a manuscript with its sources close at hand. ManuscriptForge pairs an interactive browser studio with a local Python toolkit for traceable document analysis.
 
-[![CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/ericrosenn1/manuscriptforge/graph/badge.svg)](https://codecov.io/gh/ericrosenn1/manuscriptforge)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ericrosenn1/manuscriptforge/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ericrosenn1/manuscriptforge)
-[![CodeQL](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/codeql.yml?query=branch%3Amain)
-[![Documentation](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/docs.yml/badge.svg?branch=main)](https://ericrosenn1.github.io/manuscriptforge/)
-[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](pyproject.toml)
-[![Latest release](https://img.shields.io/github/v/release/ericrosenn1/manuscriptforge?display_name=tag&sort=semver)](https://github.com/ericrosenn1/manuscriptforge/releases/latest)
-[![Release date](https://img.shields.io/github/release-date/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/releases/latest)
+[![Python CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/ci.yml)
+[![Studio CI](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/studio.yml/badge.svg?branch=main)](https://github.com/ericrosenn1/manuscriptforge/actions/workflows/studio.yml)
+[![Local first](https://img.shields.io/badge/local--first-no_API_key-47685C)](docs/studio.md#privacy-and-storage)
 
-[![Citation](https://img.shields.io/badge/citation-CITATION.cff-5A5A5A)](CITATION.cff)
+![ManuscriptForge Studio: an editorial workspace with a corpus overview, section coverage, and writing analysis](docs/assets/studio-overview.png)
 
-[![Last commit](https://img.shields.io/github/last-commit/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/commits/main)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/graphs/commit-activity)
-[![Contributors](https://img.shields.io/github/contributors/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/graphs/contributors)
-[![Open issues](https://img.shields.io/github/issues/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/issues)
-[![Open pull requests](https://img.shields.io/github/issues-pr/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge/pulls)
-[![Stars](https://img.shields.io/github/stars/ericrosenn1/manuscriptforge?style=social)](https://github.com/ericrosenn1/manuscriptforge)
-[![Forks](https://img.shields.io/github/forks/ericrosenn1/manuscriptforge?style=social)](https://github.com/ericrosenn1/manuscriptforge)
-[![Watchers](https://img.shields.io/github/watchers/ericrosenn1/manuscriptforge?style=social)](https://github.com/ericrosenn1/manuscriptforge)
-[![Repository size](https://img.shields.io/github/repo-size/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
-[![Code size](https://img.shields.io/github/languages/code-size/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
-[![Top language](https://img.shields.io/github/languages/top/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
-[![Languages](https://img.shields.io/github/languages/count/ericrosenn1/manuscriptforge)](https://github.com/ericrosenn1/manuscriptforge)
+**[Studio guide](docs/studio.md)** · **[Python walkthrough](docs/demo.md)** · **[Architecture](docs/architecture.md)** · **[Development](docs/development.md)**
 
-## Quick start
+## Start the studio
 
-Use Python 3.11, 3.12, or 3.13 and Git. The Windows example selects Python 3.12; the package supports all three versions. Installation downloads the declared Python dependencies, while the demo itself runs offline.
+The studio runs entirely in your browser. You can explore the bundled synthetic collection immediately, or start an empty workspace and import your own documents. No account, Python server, API key, or model download is required.
 
-```text
+With Git and Node.js 24 installed:
+
+```bash
 git clone https://github.com/ericrosenn1/manuscriptforge.git
 cd manuscriptforge
+npm ci --prefix web
+npm run dev --prefix web
 ```
+
+Open the local address printed in the terminal. The [studio guide](docs/studio.md) covers the complete workflow and production builds.
+
+## From source documents to an intentional draft
+
+| Workspace | What you can do |
+| --- | --- |
+| **Overview** | See corpus size, review status, section coverage, and the next useful step. All metrics are computed from your current workspace. |
+| **Source library** | Import Markdown, plain text, DOCX, and text-based PDF files. Inspect extracted text and SHA-256 source identifiers. |
+| **Passage review** | Filter passages, approve or exclude them, and record the reasoning behind a decision. Only approved passages contribute to the profile. |
+| **Style profile** | Explore sentence lengths, recurring terms, section balance, and rule-based linguistic indicators. |
+| **Manuscript** | Write and revise in Markdown, preview the document, and export a Markdown or DOCX copy. |
+| **Exports** | Download a portable ZIP with the workspace, extracted source text, review decisions, analysis, manuscript, and a checksum manifest. Reopen the workspace from its JSON file. |
+
+The studio saves changes to this browser on this device. Download a workspace export when you need a backup or want to move between devices.
+
+## A demo with inspectable provenance
+
+The bundled collection uses original, explicitly synthetic passages about an imagined distance-sensor documentation procedure. Its three documents produce seven passages: six approved sections and one excluded duplicate. You can change any decision and watch the profile respond.
+
+These are the same source passages used by the Python demo. The browser and Python engines have separate implementations; their tokenization, extraction, and descriptive metrics are not asserted to be numerically identical. The demo represents no physical experiment, real results, or actual author profile.
+
+## The Python toolkit
+
+The existing Python workflow remains available for local file processing, reviewed passage registries, section profiles, and reproducible reports. Use Python 3.11, 3.12, or 3.13.
 
 Windows PowerShell:
 
@@ -45,7 +58,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\manuscriptforge.exe demo ..\manuscriptforge-demo
 ```
 
-Linux or macOS shell:
+Linux or macOS:
 
 ```bash
 python3 -m venv .venv
@@ -54,67 +67,38 @@ python -m pip install .
 manuscriptforge demo ../manuscriptforge-demo
 ```
 
-Open the generated `DEMO_REPORT.md` first. It links to the style guide, passage review, coverage report, and a style card. Running the same command again verifies the completed demo without changing it. The destination must be new, empty, or an unchanged completed demo.
+Open the generated `DEMO_REPORT.md`. It links to the style guide, passage review, coverage report, and style cards. The demo checks its outputs and verifies an unchanged completed run when invoked again. Installation downloads dependencies; the demo itself runs offline.
 
-## What the offline demo produces
+For your own documents, follow the [usage guide](docs/usage.md). Additional Python components support experimental claim and citation records, drafting, audits, feedback, and manuscript exports; see their [documented scope](docs/architecture.md#experimental-manuscript-path).
 
-The demo uses three synthetic documents about an invented distance-sensor documentation procedure. It extracts **chunks**, meaning section-labeled passages, then applies scripted inclusion and exclusion decisions. The DOCX repeats the Markdown methods text: matching hashes flag both copies, and an explicit decision excludes the duplicate.
-
-| Output | Demonstrated result |
-| --- | --- |
-| Extraction | 3 documents in Markdown, text, and DOCX; 7 chunks |
-| Passage review | 6 approved chunks and 1 excluded duplicate |
-| Style profile | Descriptive statistics and examples from 432 words across 6 sections |
-| Style cards | 8 compact reports for individual sections and the overall collection |
-
-The demo needs no model provider, API key, or GPU. The [walkthrough](docs/demo.md) explains the input collection, checks, and reports.
-
-## Core workflow
+## Design and engineering
 
 ```mermaid
 flowchart LR
-    S[Writing documents] --> E[Extracted passages]
-    E --> C[Inclusion and exclusion decisions]
-    C --> P[Profiles by manuscript section]
-    P --> R[Reports and source-linked examples]
+    A[Source documents] --> B[Extracted text + hashes]
+    B --> C[Section passages]
+    C --> D[Explicit review decisions]
+    D --> E[Descriptive profile]
+    E --> F[Portable reports]
+    G[Manuscript editor] --> F
 ```
 
-**Curation** means deciding which passages are included or excluded. The demo requires explicit approval before profiling; for your own project, enable strict approval as shown in the [usage guide](docs/usage.md). [Architecture](docs/architecture.md) maps this workflow to the implementation.
+- **Inspectable data:** source identifiers, content hashes, passage decisions, and exports make the analysis traceable.
+- **Explicit selection:** pending and excluded passages remain visible while staying out of the browser profile.
+- **Portable state:** versioned JSON and an archive of readable files avoid a service dependency.
+- **Separate engines:** the TypeScript studio runs in the browser; the Python toolkit runs against local project folders. Neither quietly invokes the other.
+- **Tested workflows:** unit tests cover selection, analysis, import validation, and exports; browser tests cover real interactions. The existing Python test suite remains intact.
 
-## What is implemented
+## Boundaries
 
-| Capability | Current behavior |
-| --- | --- |
-| Local document extraction | Extracts Markdown, text, DOCX, and text-based PDF files; stores source hashes, cached text, and extraction status. PDF OCR is not included. |
-| Chunking and curation | Recognizes common section headings, splits passages, and preserves approvals, exclusions, review notes, and which uses each passage is approved for. |
-| Descriptive profiling | Calculates global and section-level counts, length distributions, terms, punctuation, and source-linked examples. Linguistic indicators are rule-based. |
-| Coverage and style cards | Shows passage counts by section, flags sparse sections, and writes section reports with examples. Coverage labels describe counts, not writing quality; [the walkthrough](docs/demo.md#reading-the-outputs) defines the thresholds. |
+ManuscriptForge describes writing samples; it does not grade writing quality, validate scientific claims, learn an author's identity, or generate new research. Sentence boundaries, section recognition, and linguistic indicators use rules. Sparse samples should be interpreted cautiously.
 
-### Experimental and optional components
+PDF import requires a text layer and does not perform OCR. Document extraction does not preserve every layout, annotation, or tracked change. Browser storage is not encrypted and can be cleared by the browser. Exports contain the supplied prose and should be reviewed before sharing.
 
-Additional commands support claim and citation records, drafting, audits, feedback, and Markdown, DOCX, LaTeX, and XLSX exports. A model-provider adapter and local interface are optional integrations. See the [experimental manuscript path](docs/architecture.md#experimental-manuscript-path) for their scope.
+The browser app has no analytics or server upload path. Hosting still serves application assets; external links open only when you follow them. The Python toolkit's optional network-capable providers require separate configuration.
 
-## Using your own corpus
+## Project and attribution
 
-Create a separate project directory and add the writing samples you want to analyze. The [usage guide](docs/usage.md) walks through configuration, extraction, passage review, approval for specific uses, and report generation.
-
-## Data handling
-
-The core corpus workflow reads documents from the selected project. Profiles, cards, extraction records, and review tables can contain source prose and local paths, so inspect generated artifacts before sharing them. Network-capable providers and metadata enrichment require separate, explicit configuration.
-
-## Development and supporting documentation
-
-| Guide | Contents |
-| --- | --- |
-| [Demo walkthrough](docs/demo.md) | Synthetic inputs, review decisions, reports, and unchanged-rerun checks |
-| [Usage](docs/usage.md) | Configure and analyze your own writing collection |
-| [Architecture](docs/architecture.md) | Modules, artifact structure, and optional components |
-| [Development](docs/development.md) | Tests, lint, typing, builds, and installed-package checks |
-
-## Project status, author, and citation
-
-Version 0.1.0 is an initial research prototype centered on the offline corpus workflow. It provides a foundation for exploring personalized writing workflows, but does not train a personal model or validate imitation of an author's style.
-
-Created by Eric H. Rosenn with AI coding assistance. Citation metadata is available in [CITATION.cff](CITATION.cff).
+Created by **Eric H. Rosenn**, with AI coding assistance. Citation metadata is in [CITATION.cff](CITATION.cff). This is research software with a usable browser workflow, not a scientifically validated author-modeling system.
 
 **License not yet specified.** No project-wide reuse license is granted here. Dependency licenses and applicable third-party notices remain with their respective materials.
